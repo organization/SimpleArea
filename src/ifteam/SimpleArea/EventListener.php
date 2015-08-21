@@ -1941,7 +1941,11 @@ class EventListener implements Listener {
 		$result = $this->checkWaterAbsorption ( $block, [ 
 				"nestingDepth" => 0 
 		] );
+		$nestingDepth = 0;
 		foreach ( $result as $pos => $bool ) {
+			$nestingDepth ++;
+			if ($nestingDepth >= 20)
+				break;
 			$pos = explode ( ":", $pos );
 			if (isset ( $pos [2] ))
 				$block->getLevel ()->setBlock ( new Vector3 ( $pos [0], $pos [1], $pos [2] ), Block::get ( Block::AIR ) );
