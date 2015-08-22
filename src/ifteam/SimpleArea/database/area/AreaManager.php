@@ -187,7 +187,7 @@ class AreaManager {
 			if ($this->economy !== null and ! $player->isOp ()) {
 				$money = $this->economy->myMoney ( $player );
 				if ($money < $area->getPrice ()) {
-					$string = $this->get ( "not-enough-money-to-buyarea-1" ) . ($area->getPrice () - $money) . $this->get ( "not-enough-money-to-buyarea-2" );
+					$string = $this->get ( "not-enough-money-to-buyarea-1" ) . $area->getPrice () . $this->get ( "not-enough-money-to-buyarea-2" );
 					$this->alert ( $player, $string );
 					return false;
 				} else {

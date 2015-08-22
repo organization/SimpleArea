@@ -1,6 +1,6 @@
 name: SimpleArea
 main: ifteam\SimpleArea\SimpleArea
-version: 2.0.0.24-alpha
+version: 2.0.0.25-alpha
 author: ifteam
 api: [1.12.0]
 
@@ -109,6 +109,8 @@ permissions:
  simplearea.whiteworld.pvpallow:
   default: OP
  simplearea.whiteworld.priceperblock:
+  default: OP
+ simplearea.whiteworld.checkshare:
   default: OP
  simplearea.minefarm:
   description: "Allows to control minefarm"

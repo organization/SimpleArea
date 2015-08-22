@@ -3,7 +3,7 @@
 
 #PLEASE SET HERE TO YOUR LANGUAGE PREFIX
 default-language: kor
-m_version: 6
+m_version: 8
 
 #(EN) ENGLISH
 eng-default-prefix: "[ SERVER ]"
@@ -623,6 +623,8 @@ kor-whiteworld-autocreate-enabled: "해당맵의 자동생성이 허용되었습
 kor-whiteworld-autocreate-disabled: "해당맵의 자동생성이 비허용되었습니다."
 kor-whiteworld-manualcreate-enabled: "해당맵의 수동생성이 허용되었습니다."
 kor-whiteworld-manualcreate-disabled: "해당맵의 수동생성이 비허용되었습니다."
+kor-whiteworld-countshare-enabled: "이 월드에 영역보유수에 공유받은 영역수도 포함하게 했습니다 !"
+kor-whiteworld-countshare-disabled: "이 월드에 영역보유수에 공유받은 영역수도 포함하지않게 했습니다 !"
 kor-whiteworld-manualcreate-not-allowed: "해당맵의 영역 수동생성이 허용되어 있지 않습니다 !"
 kor-whiteworld-autocreate-not-allowed: "해당맵의 영역 자동생성이 허용되어 있지 않습니다 !"
 kor-whiteworld-accessdeny-not-allowed: "해당맵은 영역 접근금지 사용이 허용되어 있지 않습니다 !"
@@ -726,7 +728,7 @@ kor-commands-areatax-desc: "서버의 토지세를 관리합니다."
 kor-commands-whiteworld-help-1: "/화이트월드 <정보> <보호> <블럭허용> <블럭금지>"
 kor-commands-whiteworld-help-2: "<영역가격> <울타리> <인벤세이브> <영역생성허용> <블럭당가격>"
 kor-commands-whiteworld-help-3: "<접근거부허용> <크기확장허용> <크기축소허용> <유저간전투허용>"
-kor-commands-whiteworld-help-4: "<수동생성허용> <최대영역수> <기본생성크기>"
+kor-commands-whiteworld-help-4: "<수동생성허용> <최대영역수> <기본생성크기> <공유수체크>"
 kor-commands-whiteworld-help-5: "(/화이트월드 ? <궁금한명령어>로 설명 확인가능)"
 kor-commands-whiteworld-help-6: " (*화이트월드 명령어는 해당맵에 해당되는 제한 설정시 사용합니다)"
 kor-commands-whiteworld-info-help: "/화이트월드 정보 - 해당 월드의 설정을 요약표시합니다."
@@ -746,6 +748,7 @@ kor-commands-whiteworld-pvpallow-help: "/화이트월드 유저간전투허용 -
 kor-commands-whiteworld-autocreate-help: "/화이트월드 영역생성허용 - 해당 월드에서 영역을 자동생성할 수 있게끔 합니다."
 kor-commands-whiteworld-manualcreate-help: "/화이트월드 수동생성허용 - 해당 월드에서 영역을 수동생성할 수 있게끔 합니다."
 kor-commands-whiteworld-priceperblock-help: "화이트월드 블럭당가격 - 수동영역생성시 책정될 블럭당 영역가격을 설정합니다."
+kor-commands-whiteworld-checkshare-help: "/화이트월드 공유수체크 -해당 월드에서 영역보유수에 공유받은 영역수도 포함할지 여부를 결정"
 kor-commands-areatax-help-1: "/토지세 <가격> - 해당월드에서 한시간마다"
 kor-commands-areatax-help-2: "보유 영역하나당 낼 토지세를 설정합니다."
 
@@ -766,6 +769,7 @@ kor-commands-whiteworld-sizeup: "크기확장허용"
 kor-commands-whiteworld-sizedown: "크기축소허용"
 kor-commands-whiteworld-pvpallow: "유저간전투허용"
 kor-commands-whiteworld-priceperblock: "블럭당가격"
+kor-commands-whiteworld-checkshare: "공유수체크"
 kor-commands-areatax: "토지세"
 
 kor-commands-minefarm: "마인팜"
@@ -829,4 +833,4 @@ kor-minefarm-holdlimit-must-be-numeric: "최대보유수는 숫자로만 적어�
 kor-minefarm-holdlimit-changed: "마인팜 최대보유 허용수를 변경했습니다 !"
 
 # AND YOU CAN PROVIDE YOUR TRANSLATION       #
-# https://github.com/if-Team/PMMP-Plugins/tree/master/SimpleArea/resources/message.yml
+# https://github.com/HmHmmHm/SimpleArea/tree/master/SimpleArea/resources/message.yml

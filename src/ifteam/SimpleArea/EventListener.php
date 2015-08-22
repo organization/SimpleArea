@@ -779,6 +779,11 @@ class EventListener implements Listener {
 						}
 						$this->whiteworldManager->setPricePerBlock ( $player->getLevel (), $player, $args [1] );
 						break;
+					case $this->get ( "commands-whiteworld-checkshare" ) :
+						if (! $player->hasPermission ( "simplearea.whiteworld.checkshare" ))
+							return false;
+						$this->whiteworldManager->setCountShareArea ( $player->getLevel (), $player );
+						break;
 					case "?" :
 						if (! isset ( $args [1] )) {
 							$this->message ( $player, $this->get ( "commands-whiteworld-help-1" ) );
@@ -830,6 +835,9 @@ class EventListener implements Listener {
 								break;
 							case $this->get ( "commands-whiteworld-priceperblock" ) :
 								$this->message ( $player, $this->get ( "commands-whiteworld-priceperblock-help" ) );
+								break;
+							case $this->get ( "commands-whiteworld-checkshare" ) :
+								$this->message ( $player, $this->get ( "commands-whiteworld-checkshare-help" ) );
 								break;
 							default :
 								$this->message ( $player, $this->get ( "commands-whiteworld-help-1" ) );

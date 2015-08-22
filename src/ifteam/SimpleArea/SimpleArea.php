@@ -91,7 +91,7 @@ class SimpleArea extends PluginBase implements Listener {
 	 * @var APILoader
 	 */
 	public $otherApi;
-	private $m_version = 6;
+	private $m_version = 8;
 	public $messages;
 	public function onEnable() {
 		new OldSimpleAreaSupport ( $this );

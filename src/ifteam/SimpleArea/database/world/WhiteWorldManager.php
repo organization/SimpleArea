@@ -261,6 +261,22 @@ class WhiteWorldManager {
 		}
 		return true;
 	}
+	public function setCountShareArea($level, CommandSender $player) {
+		$whiteWorld = $this->whiteWorldProvider->get ( $level );
+		if ($whiteWorld instanceof WhiteWorldData) {
+			if ($whiteWorld->isCountShareArea ()) {
+				$whiteWorld->setCountShareArea ( false );
+				$this->message ( $player, $this->get ( "	" ) );
+			} else {
+				$whiteWorld->setCountShareArea ( true );
+				$this->message ( $player, $this->get ( "whiteworld-countshare-enabled" ) );
+			}
+		} else {
+			$this->message ( $player, $this->get ( "whiteworld-countshare-disabled" ) );
+			return false;
+		}
+		return true;
+	}
 	public function setManualCreate($level, CommandSender $player) {
 		$whiteWorld = $this->whiteWorldProvider->get ( $level );
 		if ($whiteWorld instanceof WhiteWorldData) {

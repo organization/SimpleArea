@@ -20,6 +20,8 @@ use pocketmine\event\Event;
 use pocketmine\level\Level;
 use pocketmine\Server;
 use pocketmine\Player;
+use ifteam\SimpleArea\database\world\WhiteWorldProvider;
+use ifteam\SimpleArea\database\world\WhiteWorldData;
 
 class UserProperties implements Listener {
 	private static $instance = null;
@@ -38,6 +40,11 @@ class UserProperties implements Listener {
 	 * @var RentProvider
 	 */
 	private $rentProvider;
+	/**
+	 *
+	 * @var WhiteWorldProvider
+	 */
+	private $whiteWorldProvider;
 	private $properties = [ ];
 	private $rentProperties = [ ];
 	private $saleList = [ ];
@@ -48,6 +55,7 @@ class UserProperties implements Listener {
 		$this->server = Server::getInstance ();
 		$this->areaProvider = AreaProvider::getInstance ();
 		$this->rentProvider = RentProvider::getInstance ();
+		$this->whiteWorldProvider = WhiteWorldProvider::getInstance ();
 		$this->init ();
 	}
 	/**
@@ -83,6 +91,7 @@ class UserProperties implements Listener {
 		foreach ( $this->server->getLevels () as $level )
 			if ($level instanceof Level) {
 				$areas = $this->areaProvider->getAll ( $level->getFolderName () );
+				$whiteWorld = $this->whiteWorldProvider->get ( $level );
 				foreach ( $areas as $area ) {
 					if (isset ( $area ["resident"] ) and count ( $area ["resident"] ) == 0) {
 						$this->addSaleList ( $level->getFolderName (), $area ["id"] );
@@ -90,8 +99,13 @@ class UserProperties implements Listener {
 					}
 					if (! isset ( $area ["resident"] ) or ! isset ( $area ["id"] ) or ! is_array ( $area ["resident"] ))
 						continue;
-					foreach ( $area ["resident"] as $resident => $bool )
-						$this->addUserProperties ( $resident, $level->getFolderName (), $area ["id"] );
+					if ($whiteWorld->isCountShareArea ()) {
+						foreach ( $area ["resident"] as $resident => $bool )
+							$this->addUserProperties ( $resident, $level->getFolderName (), $area ["id"] );
+					} else {
+						if ($area ["owner"] != "")
+							$this->addUserProperties ( $area ["owner"], $level->getFolderName (), $area ["id"] );
+					}
 				}
 				$rents = $this->rentProvider->getAll ( $level->getFolderName () );
 				foreach ( $rents as $rent ) {
@@ -282,20 +296,40 @@ class UserProperties implements Listener {
 		switch (true) {
 			case $event instanceof AreaAddEvent :
 				$area = $event->getAreaData ();
+				$whiteWorld = $event->getWhtieWorldData ();
+				
 				if (! $area instanceof AreaSection)
+					return;
+				if (! $whiteWorld instanceof WhiteWorldData)
 					return;
 				
 				$residents = $area->getResident ();
-				if (count ( $residents ) == 0)
+				if (count ( $residents ) == 0) {
 					$this->addSaleList ( $area->getLevel (), $area->getId () );
-				foreach ( $residents as $resident => $bool )
-					$this->addUserProperties ( $resident, $area->getLevel (), $area->getId () );
+					return;
+				}
+				if ($whiteWorld->isCountShareArea ()) {
+					foreach ( $residents as $resident => $bool )
+						$this->addUserProperties ( $resident, $area->getLevel (), $area->getId () );
+				} else {
+					if ($area->getOwner () != "")
+						$this->addUserProperties ( $area->getOwner (), $area->getLevel (), $area->getId () );
+				}
 				break;
 			case $event instanceof AreaDeleteEvent :
+				$whiteWorld = $event->getWhtieWorldData ();
+				$area = $event->getAreaData ();
+				
 				$residents = $event->getResident ();
 				$this->deleteSaleList ( $event->getLevel (), $event->getAreaId () );
-				foreach ( $residents as $resident => $bool )
-					$this->deleteUserProperties ( $resident, $event->getLevel (), $event->getAreaId () );
+				
+				if ($whiteWorld->isCountShareArea ()) {
+					foreach ( $residents as $resident => $bool )
+						$this->addUserProperties ( $resident, $event->getLevel (), $event->getAreaId () );
+				} else {
+					if ($area->getOwner () != "")
+						$this->addUserProperties ( $area->getOwner (), $event->getLevel (), $event->getAreaId () );
+				}
 				break;
 			case $event instanceof AreaResidentEvent :
 				$area = $event->getAreaData ();

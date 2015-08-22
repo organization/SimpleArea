@@ -7,6 +7,8 @@ use pocketmine\event\Cancellable;
 use pocketmine\level\Level;
 use ifteam\SimpleArea\database\area\AreaProvider;
 use ifteam\SimpleArea\database\area\AreaSection;
+use ifteam\SimpleArea\database\world\WhiteWorldProvider;
+use ifteam\SimpleArea\database\world\WhiteWorldData;
 
 class AreaAddEvent extends Event implements Cancellable {
 	public static $handlerList = null;
@@ -48,6 +50,14 @@ class AreaAddEvent extends Event implements Cancellable {
 	 */
 	public function getAreaData() {
 		return AreaProvider::getInstance ()->getAreaToId ( $this->level, $this->id );
+	}
+	/**
+	 * getWhtieWorldData()
+	 *
+	 * @return WhiteWorldData $area
+	 */
+	public function getWhtieWorldData() {
+		return WhiteWorldProvider::getInstance ()->get ( $this->level );
 	}
 }
 ?>

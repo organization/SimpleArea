@@ -49,6 +49,8 @@ class WhiteWorldData {
 			$data ["isAllowAreaSizeUp"] = false;
 		if (! isset ( $data ["isAllowAreaSizeDown"] ))
 			$data ["isAllowAreaSizeDown"] = false;
+		if (! isset ( $data ["isCountShareArea"] ))
+			$data ["isCountShareArea"] = false;
 		
 		$this->level = $level;
 		$this->data = &$data;
@@ -217,6 +219,14 @@ class WhiteWorldData {
 		return $this->data ["isAllowAreaSizeDown"] == true ? true : false;
 	}
 	/**
+	 * Check world is share area counted
+	 *
+	 * @return boolean
+	 */
+	public function isCountShareArea() {
+		return $this->data ["isCountShareArea"] == true ? true : false;
+	}
+	/**
 	 * Set world protect status
 	 *
 	 * @param bool $bool        	
@@ -376,6 +386,7 @@ class WhiteWorldData {
 	/**
 	 * Set world is area accessdeny option allow status
 	 *
+	 * @param boolean $bool        	
 	 * @return boolean
 	 */
 	public function setAllowAccessDeny($bool) {
@@ -384,6 +395,7 @@ class WhiteWorldData {
 	/**
 	 * Set world is area size up allow status
 	 *
+	 * @param boolean $bool        	
 	 * @return boolean
 	 */
 	public function setAllowAreaSizeUp($bool) {
@@ -392,10 +404,20 @@ class WhiteWorldData {
 	/**
 	 * Set world is area size down allow status
 	 *
+	 * @param boolean $bool        	
 	 * @return boolean
 	 */
 	public function setAllowAreaSizeDown($bool) {
 		return $this->data ["isAllowAreaSizeDown"] = $bool;
+	}
+	/**
+	 * Set world is share area count status
+	 *
+	 * @param boolean $bool        	
+	 * @return boolean
+	 */
+	public function setCountShareArea($bool) {
+		return $this->data ["isCountShareArea"] = $bool;
 	}
 }
 
