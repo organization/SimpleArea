@@ -12,7 +12,6 @@ use ifteam\SimpleArea\database\area\AreaProvider;
 use ifteam\SimpleArea\database\area\AreaSection;
 use ifteam\SimpleArea\database\area\AreaManager;
 use pocketmine\Player;
-use pocketmine\math\Vector3;
 use ifteam\SimpleArea\SimpleArea;
 use ifteam\SimpleArea\database\user\UserProperties;
 

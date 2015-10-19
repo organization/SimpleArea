@@ -1,8 +1,11 @@
 name: SimpleArea
 main: ifteam\SimpleArea\SimpleArea
-version: 2.0.0.25-alpha
+version: 2.0.0.26-alpha
 author: ifteam
-api: [1.12.0]
+api:
+- 1.12.0
+- 1.13.0
+- 2.0.0
 
 permissions:
  simplearea.area:

@@ -3,7 +3,6 @@
 namespace ifteam\SimpleArea\database\minefarm;
 
 use ifteam\SimpleArea\SimpleArea;
-use pocketmine\level\Level;
 use pocketmine\level\generator\Generator;
 use pocketmine\level\format\FullChunk;
 use pocketmine\level\generator\object\Tree;
@@ -12,7 +11,6 @@ use ifteam\SimpleArea\database\area\AreaProvider;
 use ifteam\SimpleArea\database\world\WhiteWorldProvider;
 use ifteam\SimpleArea\database\area\AreaLoader;
 use ifteam\SimpleArea\database\user\UserProperties;
-use pocketmine\math\Vector3;
 use pocketmine\block\Block;
 use pocketmine\Player;
 use pocketmine\block\Sapling;

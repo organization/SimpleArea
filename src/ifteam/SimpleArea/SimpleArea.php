@@ -28,7 +28,6 @@ use ifteam\SimpleArea\task\AutoSaveTask;
 use ifteam\SimpleArea\database\world\WhiteWorldLoader;
 use ifteam\SimpleArea\database\rent\RentLoader;
 use pocketmine\event\level\LevelInitEvent;
-use ifteam\SimpleArea\util\HelixCount;
 
 class SimpleArea extends PluginBase implements Listener {
 	/**

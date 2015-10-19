@@ -4,7 +4,6 @@ namespace ifteam\SimpleArea\event;
 
 use pocketmine\event\Event;
 use pocketmine\event\Cancellable;
-use pocketmine\level\Level;
 
 class AreaTaxChangeEvent extends Event implements Cancellable {
 	public static $handlerList = null;

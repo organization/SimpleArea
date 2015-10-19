@@ -5,7 +5,6 @@ namespace ifteam\SimpleArea\event;
 use pocketmine\event\Event;
 use pocketmine\event\Cancellable;
 use ifteam\SimpleArea\database\area\AreaProvider;
-use pocketmine\level\Level;
 use ifteam\SimpleArea\database\area\AreaSection;
 
 class AreaDeleteEvent extends Event implements Cancellable {

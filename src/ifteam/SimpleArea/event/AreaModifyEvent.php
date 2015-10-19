@@ -2,9 +2,7 @@
 
 namespace ifteam\SimpleArea\event;
 
-use pocketmine\Player;
 use pocketmine\block\Block;
-use pocketmine\level\Level;
 use pocketmine\event\Event;
 use pocketmine\event\Cancellable;
 use ifteam\SimpleArea\database\area\AreaProvider;
