@@ -80,6 +80,7 @@ class EventListener implements Listener {
 	 */
 	private $rentManager;
 	private $queue;
+	private $waterLists = [ ];
 	public function __construct(SimpleArea $plugin) {
 		$this->plugin = $plugin;
 		$this->areaProvider = AreaProvider::getInstance ();
@@ -1935,6 +1936,15 @@ class EventListener implements Listener {
 				if ($searchArea->getId () != $updatedArea->getId ()) {
 					$event->setCancelled ();
 					$event->getBlock ()->getLevel ()->setBlock ( $block, $block );
+					if (isset ( $this->waterLists [$updatedArea->getId ()] )) {
+						foreach ( $this->waterLists [$updatedArea->getId ()] as $key => $value ) {
+							$pos = explode ( ":", $key );
+							$pos = new Vector3 ( $pos [0], $pos [1], $pos [2] );
+							if ($block->getLevel ()->getBlockIdAt ( $pos->x, $pos->y, $pos->z ) == 8 or $block->getLevel ()->getBlockIdAt ( $pos->x, $pos->y, $pos->z ) == 10)
+								$block->getLevel ()->setBlock ( $pos, Block::get ( Block::AIR ) );
+						}
+						unset ( $this->waterLists [$updatedArea->getId ()] );
+					}
 					break;
 				}
 			} else {
@@ -1942,7 +1952,32 @@ class EventListener implements Listener {
 				// (it is same overflow (home->none) prevent)
 				$event->setCancelled ();
 				$this->waterAbsorption ( $event->getBlock () );
+				if (isset ( $this->waterLists [$updatedArea->getId ()] )) {
+					foreach ( $this->waterLists [$updatedArea->getId ()] as $key => $value ) {
+						$pos = explode ( ":", $key );
+						$pos = new Vector3 ( $pos [0], $pos [1], $pos [2] );
+						if ($block->getLevel ()->getBlockIdAt ( $pos->x, $pos->y, $pos->z ) == 8 or $block->getLevel ()->getBlockIdAt ( $pos->x, $pos->y, $pos->z ) == 10)
+							$block->getLevel ()->setBlock ( $pos, Block::get ( Block::AIR ) );
+					}
+					unset ( $this->waterLists [$updatedArea->getId ()] );
+				}
 			}
+		}
+		if (! $event->isCancelled ()) {
+			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y + 1, $block->z ) == 8)
+				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . ($block->y + 1) . ":" . $block->z] = true;
+			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y - 1, $block->z ) == 8)
+				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . ($block->y - 1) . ":" . $block->z] = true;
+			if ($block->getLevel ()->getBlockIdAt ( $block->x + 1, $block->y, $block->z ) == 8)
+				$this->waterLists [$updatedArea->getId ()] [($block->x + 1) . ":" . $block->y . ":" . $block->z] = true;
+			if ($block->getLevel ()->getBlockIdAt ( $block->x - 1, $block->y, $block->z ) == 8)
+				$this->waterLists [$updatedArea->getId ()] [($block->x - 1) . ":" . $block->y . ":" . $block->z] = true;
+			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y, $block->z + 1 ) == 8)
+				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . $block->y . ":" . ($block->z + 1)] = true;
+			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y, $block->z - 1 ) == 8)
+				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . $block->y . ":" . ($block->z - 1)] = true;
+			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y, $block->z ) == 8)
+				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . $block->y . ":" . $block->z] = true;
 		}
 	}
 	public function waterAbsorption(Block $block) {
