@@ -85,7 +85,6 @@ class MineFarmManager {
 				$this->alert ( $player, "not-enough-money" );
 				return false;
 			}
-			$this->economy->reduceMoney ( $player, $price );
 		}
 		$areaHoldLimit = $this->whiteWorldProvider->get ( "minefarm" )->getAreaHoldLimit ();
 		$userHoldCount = count ( $this->properties->getUserProperties ( $player->getName (), "minefarm" ) );
@@ -94,6 +93,9 @@ class MineFarmManager {
 				$this->alert ( $player, $this->get ( "no-more-buying-area" ) );
 				return false;
 			}
+		}
+		if ($this->economy !== null and ! $player->isop ()) {
+			$this->economy->reduceMoney ( $player, $price );
 		}
 		$areaId = $this->mineFarmLoader->addMineFarm ( $player );
 		$this->message ( $player, $areaId . " " . $this->get ( "minefarm-buying-that-minefarm" ) );
