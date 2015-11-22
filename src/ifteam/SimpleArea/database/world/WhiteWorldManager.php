@@ -266,7 +266,7 @@ class WhiteWorldManager {
 		if ($whiteWorld instanceof WhiteWorldData) {
 			if ($whiteWorld->isCountShareArea ()) {
 				$whiteWorld->setCountShareArea ( false );
-				$this->message ( $player, $this->get ( "	" ) );
+				$this->message ( $player, $this->get ( "whiteworld-countshare-disabled" ) );
 			} else {
 				$whiteWorld->setCountShareArea ( true );
 				$this->message ( $player, $this->get ( "whiteworld-countshare-enabled" ) );
