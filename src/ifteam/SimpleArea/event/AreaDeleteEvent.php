@@ -66,5 +66,8 @@ class AreaDeleteEvent extends Event implements Cancellable {
 	public function getAreaData() {
 		return AreaProvider::getInstance ()->getAreaToId ( $this->level, $this->id );
 	}
+	public function getWhiteWorldData() {
+		return WhiteWorldProvider::getInstance ()->get ( $this->level );
+	}
 }
 ?>
