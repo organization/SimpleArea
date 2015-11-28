@@ -317,7 +317,7 @@ class UserProperties implements Listener {
 				}
 				break;
 			case $event instanceof AreaDeleteEvent :
-				$whiteWorld = $event->getWhtieWorldData ();
+				$whiteWorld = $event->getWhiteWorldData ();
 				$area = $event->getAreaData ();
 				
 				$residents = $event->getResident ();
