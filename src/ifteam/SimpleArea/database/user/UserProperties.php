@@ -320,6 +320,11 @@ class UserProperties implements Listener {
 				$whiteWorld = $event->getWhiteWorldData ();
 				$area = $event->getAreaData ();
 				
+				if (! $area instanceof AreaSection)
+					return;
+				if (! $whiteWorld instanceof WhiteWorldData)
+					return;
+				
 				$residents = $event->getResident ();
 				$this->deleteSaleList ( $event->getLevel (), $event->getAreaId () );
 				

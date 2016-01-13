@@ -5,6 +5,7 @@ namespace ifteam\SimpleArea\event;
 use ifteam\SimpleArea\database\area\AreaProvider;
 use pocketmine\event\Event;
 use pocketmine\event\Cancellable;
+use ifteam\SimpleArea\database\area\AreaSection;
 
 class AreaResidentEvent extends Event implements Cancellable {
 	public static $handlerList = null;

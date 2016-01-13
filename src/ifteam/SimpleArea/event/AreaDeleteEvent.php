@@ -6,6 +6,7 @@ use pocketmine\event\Event;
 use pocketmine\event\Cancellable;
 use ifteam\SimpleArea\database\area\AreaProvider;
 use ifteam\SimpleArea\database\area\AreaSection;
+use ifteam\SimpleArea\database\world\WhiteWorldProvider;
 
 class AreaDeleteEvent extends Event implements Cancellable {
 	public static $handlerList = null;
