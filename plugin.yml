@@ -1,6 +1,6 @@
 name: SimpleArea
 main: ifteam\SimpleArea\SimpleArea
-version: 2.0.0.27-alpha
+version: 2.0.0.28-alpha
 author: ifteam
 api:
 - 1.12.0

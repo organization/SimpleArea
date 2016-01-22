@@ -280,7 +280,9 @@ class EventListener implements Listener {
 							$this->message ( $player, $this->get ( "commands-area-welcome-help" ) );
 							return true;
 						}
-						$this->areaManager->welcome ( $player, $args [1] );
+						array_shift($args);
+						$string = implode(" ", $args);
+						$this->areaManager->welcome ( $player, $string );
 						break;
 					case $this->get ( "commands-area-protect" ) :
 						if (! $player->hasPermission ( "simplearea.area.protect" ))
@@ -1072,7 +1074,9 @@ class EventListener implements Listener {
 							$this->message ( $player, $this->get ( "commands-rent-welcome-help" ) );
 							return true;
 						}
-						$this->rentManager->setWelcome ( $player, $args [1] );
+						array_shift($args);
+						$string = implode(' ', $string);
+						$this->rentManager->setWelcome ( $player, $string );
 						break;
 					case "?" :
 						if (! isset ( $args [1] )) {

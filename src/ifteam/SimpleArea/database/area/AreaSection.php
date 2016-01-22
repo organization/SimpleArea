@@ -430,7 +430,7 @@ class AreaSection {
 	 * @param string $string        	
 	 */
 	public function setWelcome($string) {
-		$this->data ["welcome"] = $string;
+		$this->data ["welcome"] = mb_convert_encoding ( $string, "UTF-8" );
 	}
 	/**
 	 * Set area price
