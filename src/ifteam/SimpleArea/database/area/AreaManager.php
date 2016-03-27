@@ -389,6 +389,10 @@ class AreaManager {
 			$this->alert ( $player, $this->get ( "commands-area-info-help" ) );
 			return false;
 		}
+		if ( strtolower ( $area->getOwner () ) !== strtolower ( $player->getName () ) ) {
+			$this->alert( $player, $this->get( "here-is-not-your-area" ) );
+			return false;
+		}
 		if ($area->isPvpAllow ()) {
 			$area->setPvpAllow ( false );
 			$this->message ( $player, $this->get ( "area-pvp-forbid" ) );
