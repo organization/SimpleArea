@@ -4,7 +4,7 @@ namespace ifteam\SimpleArea\database\minefarm;
 
 use ifteam\SimpleArea\SimpleArea;
 use pocketmine\level\generator\Generator;
-use pocketmine\level\format\FullChunk;
+use pocketmine\level\format\Chunk as FullChunk;
 use pocketmine\level\generator\object\Tree;
 use pocketmine\Server;
 use ifteam\SimpleArea\database\area\AreaProvider;

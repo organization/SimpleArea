@@ -82,7 +82,7 @@ class MineFarmManager {
 		if ($this->economy !== null and ! $player->isOp ()) {
 			$money = $this->economy->myMoney ( $player );
 			if ($money < $price) {
-				$this->alert ( $player, "not-enough-money" );
+				$this->alert ( $player, $this->get ( "minefarm-not-enough-money" ) );
 				return false;
 			}
 		}
