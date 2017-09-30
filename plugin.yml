@@ -1,138 +1,133 @@
 name: SimpleArea
 main: ifteam\SimpleArea\SimpleArea
-version: 2.0.0.29-alpha
+version: 2.0.0.29+9
 author: ifteam
-api:
-- 1.12.0
-- 1.13.0
-- 2.0.0
-- 3.0.0-ALPHA1
-
+api: [3.0.0-ALPHA6, 3.0.0-ALPHA7, 3.0.0-ALPHA8, 3.0.0-ALPHA9]
 permissions:
- simplearea.area:
-  description: "Allows to control area"
-  default: true
- simplearea.area.move:
-  default: true
- simplearea.area.getlist:
-  default: true
- simplearea.area.autocreate:
-  default: true
- simplearea.area.manualcreate:
-  default: true
- simplearea.area.buy:
-  default: true
- simplearea.area.delete:
-  default: true
- simplearea.area.sell:
-  default: true
- simplearea.area.give:
-  default: true
- simplearea.area.info:
-  default: true
- simplearea.area.share:
-  default: true
- simplearea.area.deport:
-  default: true
- simplearea.area.sharelist:
-  default: true
- simplearea.area.welcome:
-  default: true
- simplearea.area.protect:
-  default: true
- simplearea.area.allowblock:
-  default: true
- simplearea.area.forbidblock:
-  default: true
- simplearea.area.abandon:
-  default: true
- simplearea.area.canbuylist:
-  default: true
- simplearea.area.accessdeny:
-  default: true
- simplearea.area.sizeup:
-  default: true
- simplearea.area.sizedown:
-  default: true
- simplearea.area.pvpallow:
-  default: true
- simplearea.area.areaprice:
-  default: OP
- simplearea.area.setfence:
-  default: OP
- simplearea.area.setinvensave:
-  default: OP
- simplearea.area.changemode:
-  default: OP
- simplearea.rent:
-  description: "Allows to control rent"
-  default: true
- simplearea.rent.move:
-  default: true
- simplearea.rent.list:
-  default: true
- simplearea.rent.create:
-  default: true
- simplearea.rent.out:
-  default: true
- simplearea.rent.salelist:
-  default: true
- simplearea.rent.welcome:
-  default: true
- simplearea.whiteworld:
-  description: "Allows to control whiteworld"
-  default: OP
- simplearea.whiteworld.info:
-  default: OP
- simplearea.whiteworld.protect:
-  default: OP
- simplearea.whiteworld.allowblock:
-  default: OP
- simplearea.whiteworld.forbidblock:
-  default: OP
- simplearea.whiteworld.areaprice:
-  default: OP
- simplearea.whiteworld.setfence:
-  default: OP
- simplearea.whiteworld.setinvensave:
-  default: OP
- simplearea.whiteworld.setautocreateallow:
-  default: OP
- simplearea.whiteworld.setmanualcreate:
-  default: OP
- simplearea.whiteworld.areaholdlimit:
-  default: OP
- simplearea.whiteworld.defaultareasize:
-  default: OP
- simplearea.whiteworld.accessdeny:
-  default: OP
- simplearea.whiteworld.sizeup:
-  default: OP
- simplearea.whiteworld.sizedown:
-  default: OP
- simplearea.whiteworld.pvpallow:
-  default: OP
- simplearea.whiteworld.priceperblock:
-  default: OP
- simplearea.whiteworld.checkshare:
-  default: OP
- simplearea.minefarm:
-  description: "Allows to control minefarm"
-  default: true
- simplearea.minefarm.buy:
-  default: true
- simplearea.minefarm.delete:
-  default: true
- simplearea.minefarm.move:
-  default: true
- simplearea.minefarm.list:
-  default: true
- simplearea.minefarm.start:
-  default: OP
- simplearea.minefarm.setprice:
-  default: OP
- simplearea.minefarm.farmholdlimit:
-  default: OP
- simplearea.areatax:
-  description: "Allows to control areatax"
-  default: OP
+  simplearea.area:
+    description: Allows to control area
+    default: true
+  simplearea.area.move:
+    default: true
+  simplearea.area.getlist:
+    default: true
+  simplearea.area.autocreate:
+    default: true
+  simplearea.area.manualcreate:
+    default: true
+  simplearea.area.buy:
+    default: true
+  simplearea.area.delete:
+    default: true
+  simplearea.area.sell:
+    default: true
+  simplearea.area.give:
+    default: true
+  simplearea.area.info:
+    default: true
+  simplearea.area.share:
+    default: true
+  simplearea.area.deport:
+    default: true
+  simplearea.area.sharelist:
+    default: true
+  simplearea.area.welcome:
+    default: true
+  simplearea.area.protect:
+    default: true
+  simplearea.area.allowblock:
+    default: true
+  simplearea.area.forbidblock:
+    default: true
+  simplearea.area.abandon:
+    default: true
+  simplearea.area.canbuylist:
+    default: true
+  simplearea.area.accessdeny:
+    default: true
+  simplearea.area.sizeup:
+    default: true
+  simplearea.area.sizedown:
+    default: true
+  simplearea.area.pvpallow:
+    default: true
+  simplearea.area.areaprice:
+    default: OP
+  simplearea.area.setfence:
+    default: OP
+  simplearea.area.setinvensave:
+    default: OP
+  simplearea.area.changemode:
+    default: OP
+  simplearea.rent:
+    description: Allows to control rent
+    default: true
+  simplearea.rent.move:
+    default: true
+  simplearea.rent.list:
+    default: true
+  simplearea.rent.create:
+    default: true
+  simplearea.rent.out:
+    default: true
+  simplearea.rent.salelist:
+    default: true
+  simplearea.rent.welcome:
+    default: true
+  simplearea.whiteworld:
+    description: Allows to control whiteworld
+    default: OP
+  simplearea.whiteworld.info:
+    default: OP
+  simplearea.whiteworld.protect:
+    default: OP
+  simplearea.whiteworld.allowblock:
+    default: OP
+  simplearea.whiteworld.forbidblock:
+    default: OP
+  simplearea.whiteworld.areaprice:
+    default: OP
+  simplearea.whiteworld.setfence:
+    default: OP
+  simplearea.whiteworld.setinvensave:
+    default: OP
+  simplearea.whiteworld.setautocreateallow:
+    default: OP
+  simplearea.whiteworld.setmanualcreate:
+    default: OP
+  simplearea.whiteworld.areaholdlimit:
+    default: OP
+  simplearea.whiteworld.defaultareasize:
+    default: OP
+  simplearea.whiteworld.accessdeny:
+    default: OP
+  simplearea.whiteworld.sizeup:
+    default: OP
+  simplearea.whiteworld.sizedown:
+    default: OP
+  simplearea.whiteworld.pvpallow:
+    default: OP
+  simplearea.whiteworld.priceperblock:
+    default: OP
+  simplearea.whiteworld.checkshare:
+    default: OP
+  simplearea.minefarm:
+    description: Allows to control minefarm
+    default: true
+  simplearea.minefarm.buy:
+    default: true
+  simplearea.minefarm.delete:
+    default: true
+  simplearea.minefarm.move:
+    default: true
+  simplearea.minefarm.list:
+    default: true
+  simplearea.minefarm.start:
+    default: OP
+  simplearea.minefarm.setprice:
+    default: OP
+  simplearea.minefarm.farmholdlimit:
+    default: OP
+  simplearea.areatax:
+    description: Allows to control areatax
+    default: OP

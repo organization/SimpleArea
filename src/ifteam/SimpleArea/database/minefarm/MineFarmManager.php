@@ -71,14 +71,16 @@ class MineFarmManager {
 		return true;
 	}
 	public function buy(CommandSender $player) {
-		$level = $this->server->getLevelByName ( "minefarm" );
+		$level = $this->server->getLevelByName ( "island" );
 		if (! $level instanceof Level) {
 			$this->message ( $player, $this->get ( "minefarm-not-exist" ) );
 			if ($player->isOp ())
+{
 				$this->message ( $player, $this->get ( "minefarm-can-create-minefarm" ) );
+}
 			return false;
 		}
-		$price = $this->whiteWorldProvider->get ( "minefarm" )->getDefaultAreaPrice ();
+		$price = $this->whiteWorldProvider->get ( "island" )->getDefaultAreaPrice ();
 		if ($this->economy !== null and ! $player->isOp ()) {
 			$money = $this->economy->myMoney ( $player );
 			if ($money < $price) {
@@ -86,11 +88,11 @@ class MineFarmManager {
 				return false;
 			}
 		}
-		$areaHoldLimit = $this->whiteWorldProvider->get ( "minefarm" )->getAreaHoldLimit ();
-		$userHoldCount = count ( $this->properties->getUserProperties ( $player->getName (), "minefarm" ) );
+		$areaHoldLimit = $this->whiteWorldProvider->get ( "island" )->getAreaHoldLimit ();
+		$userHoldCount = count ( $this->properties->getUserProperties ( $player->getName (), "island" ) );
 		if (! $player->isOp ()) {
 			if ($userHoldCount >= $areaHoldLimit) {
-				$this->alert ( $player, $this->get ( "no-more-buying-area" ) );
+				$this->alert ( $player, $this->get ( "minefarm-hold-is-limit" ) );
 				return false;
 			}
 		}
@@ -103,11 +105,13 @@ class MineFarmManager {
 		return true;
 	}
 	public function delete(CommandSender $player) {
-		$level = $this->server->getLevelByName ( "minefarm" );
+		$level = $this->server->getLevelByName ( "island" );
 		if (! $level instanceof Level) {
 			$this->message ( $player, $this->get ( "minefarm-not-exist" ) );
 			if ($player->isOp ())
+{
 				$this->message ( $player, $this->get ( "minefarm-can-create-minefarm" ) );
+}
 			return false;
 		}
 		if (! $player instanceof Player) {
@@ -118,11 +122,13 @@ class MineFarmManager {
 		return true;
 	}
 	public function move(CommandSender $player, $target) {
-		$level = $this->server->getLevelByName ( "minefarm" );
+		$level = $this->server->getLevelByName ( "island" );
 		if (! $level instanceof Level) {
 			$this->message ( $player, $this->get ( "minefarm-not-exist" ) );
 			if ($player->isOp ())
+{
 				$this->message ( $player, $this->get ( "minefarm-can-create-minefarm" ) );
+}
 			return false;
 		}
 		if (! $player instanceof Player) {
@@ -138,7 +144,7 @@ class MineFarmManager {
 			$this->message ( $player, $listString, "" );
 			return false;
 		}
-		$area = $this->areaProvider->getAreaToId ( "minefarm", $target );
+		$area = $this->areaProvider->getAreaToId ( "island", $target );
 		if (! $area instanceof AreaSection) {
 			$this->alert ( $player, $this->get ( "minefarm-farm-not-exist" ) );
 			if ($player->isOp ())
@@ -146,19 +152,17 @@ class MineFarmManager {
 			return false;
 		}
 		$areaCenter = $area->getCenter ();
-		if ($player->getLevel ()->getFolderName () !== "minefarm") {
-			$player->teleport ( new Position ( $areaCenter->x, $areaCenter->y, $areaCenter->z, $level ) );
-		} else {
-			$player->teleport ( $areaCenter );
-		}
+		$player->teleport ( new Position ( $areaCenter->x, 4, $areaCenter->z, $level ) );
 		return true;
 	}
 	public function getList(CommandSender $player) {
-		$level = $this->server->getLevelByName ( "minefarm" );
+		$level = $this->server->getLevelByName ( "island" );
 		if (! $level instanceof Level) {
 			$this->message ( $player, $this->get ( "minefarm-not-exist" ) );
 			if ($player->isOp ())
+{
 				$this->message ( $player, $this->get ( "minefarm-can-create-minefarm" ) );
+}
 			return false;
 		}
 		$list = $this->mineFarmLoader->getMineFarmList ( $player );
@@ -170,7 +174,7 @@ class MineFarmManager {
 		return true;
 	}
 	public function setPrice(CommandSender $player, $price) {
-		$level = $this->server->getLevelByName ( "minefarm" );
+		$level = $this->server->getLevelByName ( "island" );
 		if (! $level instanceof Level) {
 			$this->message ( $player, $this->get ( "minefarm-not-exist" ) );
 			$this->message ( $player, $this->get ( "minefarm-can-create-minefarm" ) );
@@ -180,12 +184,12 @@ class MineFarmManager {
 			$this->alert ( $player, $this->get ( "minefarm-areaprice-must-be-numeric" ) );
 			return false;
 		}
-		$this->whiteWorldProvider->get ( "minefarm" )->setDefaultAreaPrice ( $price );
+		$this->whiteWorldProvider->get ( "island" )->setDefaultAreaPrice ( $price );
 		$this->message ( $player, $this->get ( "minefarm-farm-price-changed" ) );
 		return true;
 	}
 	public function farmHoldLimit(CommandSender $player, $limit) {
-		$level = $this->server->getLevelByName ( "minefarm" );
+		$level = $this->server->getLevelByName ( "island" );
 		if (! $level instanceof Level) {
 			$this->message ( $player, $this->get ( "minefarm-not-exist" ) );
 			$this->message ( $player, $this->get ( "minefarm-can-create-minefarm" ) );
@@ -195,7 +199,7 @@ class MineFarmManager {
 			$this->message ( $player, $this->get ( "minefarm-holdlimit-must-be-numeric" ) );
 			return false;
 		}
-		$this->whiteWorldProvider->get ( "minefarm" )->setAreaHoldLimit ( $limit );
+		$this->whiteWorldProvider->get ( "island" )->setAreaHoldLimit ( $limit );
 		$this->message ( $player, $this->get ( "minefarm-holdlimit-changed" ) );
 		return true;
 	}

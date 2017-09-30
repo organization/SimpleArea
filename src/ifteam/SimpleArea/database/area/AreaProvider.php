@@ -19,19 +19,8 @@ class AreaProvider {
 			self::$instance = $this;
 		$this->areaLoader = new AreaLoader ();
 	}
-	/**
-	 * Add area data
-	 *
-	 * @param string $level        	
-	 * @param int $startX        	
-	 * @param int $endX        	
-	 * @param int $startZ        	
-	 * @param int $endZ        	
-	 * @param string $owner        	
-	 * @param bool $isHome        	
-	 * @param bool $fenceSet        	
-	 * @return AreaSection|NULL
-	 */
+
+
 	public function addArea($level, $startX, $endX, $startZ, $endZ, $owner, $isHome, $fenceSet = true) {
 		if ($level instanceof Level)
 			$level = $level->getFolderName ();
@@ -76,11 +65,8 @@ class AreaProvider {
 		
 		return $area;
 	}
-	/**
-	 *
-	 * @param string $level        	
-	 * @param string $id        	
-	 */
+
+
 	public function deleteArea($level, $id) {
 		if ($level instanceof Level)
 			$level = $level->getFolderName ();
@@ -97,80 +83,43 @@ class AreaProvider {
 		}
 		$this->areaLoader->deleteAreaSection ( $level, $id );
 	}
-	/**
-	 * Get all area data of the level
-	 *
-	 * @param string $level        	
-	 * @return array $areas
-	 */
+
+
 	public function getAll($level) {
 		if ($level instanceof Level)
 			$level = $level->getFolderName ();
 		return $this->areaLoader->getAll ( $level );
 	}
-	/**
-	 * Get All areas info of the level
-	 *
-	 * @param string $level        	
-	 * @return NULL|Array
-	 */
+
+
 	public function getAreasInfo($level) {
 		if ($level instanceof Level)
 			$level = $level->getFolderName ();
 		return $this->areaLoader->getAreasInfo ( $level );
 	}
-	/**
-	 * Get area data of the level
-	 *
-	 * @param string $level        	
-	 * @param int $x        	
-	 * @param int $z        	
-	 * @return AreaSection|NULL
-	 */
-	public function getArea($level, $x, $z) {
+
+
+	public function getArea($level, $x, $z, $player = null) {
 		if ($level instanceof Level)
 			$level = $level->getFolderName ();
-		return $this->areaLoader->getArea ( $level, $x, $z );
+		return $this->areaLoader->getArea ( $level, $x, $z, $player);
 	}
-	/**
-	 * Get area data of the level (using Id)
-	 *
-	 * @param string $level        	
-	 * @param int $id        	
-	 * @return AreaSection $data | null
-	 */
+
+
 	public function getAreaToId($level, $id) {
 		if ($level instanceof Level)
 			$level = $level->getFolderName ();
 		return $this->areaLoader->getAreaSection ( $level, $id );
 	}
-	/**
-	 * Get checkOverlap of the level
-	 *
-	 * @param string $level        	
-	 * @param int $startX        	
-	 * @param int $endX        	
-	 * @param int $startZ        	
-	 * @param int $endZ        	
-	 * @return AreaSection|NULL
-	 */
+
+
 	public function checkOverlap($level, $startX, $endX, $startZ, $endZ, $pass = null) {
 		if ($level instanceof Level)
 			$level = $level->getFolderName ();
 		return $this->areaLoader->checkOverlap ( $level, $startX, $endX, $startZ, $endZ, $pass );
 	}
-	/**
-	 * Resize the area
-	 *
-	 * @param string $level        	
-	 * @param int $id        	
-	 * @param int $startX        	
-	 * @param int $endX        	
-	 * @param int $startZ        	
-	 * @param int $endZ        	
-	 * @param bool $resetFence        	
-	 * @return boolean
-	 */
+
+
 	public function resizeArea($level, $id, $startX = 0, $endX = 0, $startZ = 0, $endZ = 0, $resetFence = true) {
 		$area = $this->getAreaToId ( $level, $id );
 		if (! $area instanceof AreaSection)
@@ -197,19 +146,14 @@ class AreaProvider {
 			$area->setFence ();
 		return true;
 	}
-	/**
-	 * Save settings (bool is async)
-	 *
-	 * @param string $bool        	
-	 */
+
+
 	public function save($bool = false) {
 		if ($this->areaLoader instanceof AreaLoader)
 			$this->areaLoader->save ( $bool );
 	}
-	/**
-	 *
-	 * @return AreaProvider
-	 */
+
+
 	public static function getInstance() {
 		return static::$instance;
 	}

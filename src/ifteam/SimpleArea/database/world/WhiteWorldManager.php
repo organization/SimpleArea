@@ -37,113 +37,10 @@ class WhiteWorldManager {
 		}
 		return true;
 	}
-	public function allowBlock($level, $block, $bool, CommandSender $player) {
-		$whiteWorld = $this->whiteWorldProvider->get ( $level );
-		if ($whiteWorld instanceof WhiteWorldData) {
-			$block = explode ( ":", $block );
-			if (isset ( $block [1] )) {
-				if (! is_numeric ( $block [0] ) or ! is_numeric ( $block [1] )) {
-					$this->alert ( $player, $this->get ( "wrong-block-id-and-damage" ) );
-					return false;
-				}
-			} else {
-				if (! is_numeric ( $block [0] )) {
-					$this->alert ( $player, $this->get ( "wrong-block-id-and-damage" ) );
-					return false;
-				}
-				$block [1] = 0;
-			}
-			$whiteWorld->setAllowOption ( $bool, $block [0], $block [1] );
-			$this->message ( $player, $this->get ( "whiteworld-allowblock-added" ) );
-		} else {
-			$this->message ( $player, $this->get ( "whiteworld-not-exist" ) );
-			return false;
-		}
-		return true;
-	}
-	public function allowBlockList($level, CommandSender $player) {
-		$whiteWorld = $this->whiteWorldProvider->get ( $level );
-		if (! $whiteWorld instanceof WhiteWorldData) {
-			$this->message ( $player, $this->get ( "whiteworld-not-exist" ) );
-			return false;
-		}
-		$allowBlockList = $whiteWorld->getAllowOption ();
-		$this->message ( $player, $this->get ( "show-allowed-block-list" ) );
-		$listString = "";
-		foreach ( $allowBlockList as $allowBlock => $bool )
-			$listString = "<{$allowBlock}> ";
-		$this->message ( $player, $listString );
-		return true;
-	}
-	public function allowBlockClear($level, CommandSender $player) {
-		$whiteWorld = $this->whiteWorldProvider->get ( $level );
-		if (! $whiteWorld instanceof WhiteWorldData) {
-			$this->message ( $player, $this->get ( "whiteworld-not-exist" ) );
-			return false;
-		}
-		$allowBlockList = $whiteWorld->getAllowOption ();
-		foreach ( $allowBlockList as $allowBlock => $bool ) {
-			$block = explode ( ":", $allowBlock );
-			$area->setAllowOption ( false, $block [0], $block [1] );
-		}
-		$this->message ( $player, $this->get ( "allowed-block-list-cleared" ) );
-		return true;
-	}
-	public function forbidBlock($level, $block, $bool, CommandSender $player) {
-		$whiteWorld = $this->whiteWorldProvider->get ( $level );
-		if ($whiteWorld instanceof WhiteWorldData) {
-			$block = explode ( ":", $block );
-			if (isset ( $block [1] )) {
-				if (! is_numeric ( $block [0] ) or ! is_numeric ( $block [1] )) {
-					$this->alert ( $player, $this->get ( "wrong-block-id-and-damage" ) );
-					return false;
-				}
-			} else {
-				if (! is_numeric ( $block [0] )) {
-					$this->alert ( $player, $this->get ( "wrong-block-id-and-damage" ) );
-					return false;
-				}
-				$block [1] = 0;
-			}
-			$whiteWorld->setForbidOption ( $bool, $block [0], $block [1] );
-			$this->message ( $player, $this->get ( "whiteworld-forbidblock-added" ) );
-		} else {
-			$this->message ( $player, $this->get ( "whiteworld-not-exist" ) );
-			return false;
-		}
-		return true;
-	}
-	public function forbidBlockList($level, CommandSender $player) {
-		$whiteWorld = $this->whiteWorldProvider->get ( $level );
-		if (! $whiteWorld instanceof WhiteWorldData) {
-			$this->message ( $player, $this->get ( "whiteworld-not-exist" ) );
-			return false;
-		}
-		$forbidBlockList = $whiteWorld->getForbidOption ();
-		$this->message ( $player, $this->get ( "show-forbid-block-list" ) );
-		$listString = "";
-		foreach ( $forbidBlockList as $forbidBlock => $bool )
-			$listString = "<{$forbidBlock}> ";
-		$this->message ( $player, $listString );
-		return true;
-	}
-	public function forbidBlockClear($level, CommandSender $player) {
-		$whiteWorld = $this->whiteWorldProvider->get ( $level );
-		if (! $whiteWorld instanceof WhiteWorldData) {
-			$this->message ( $player, $this->get ( "whiteworld-not-exist" ) );
-			return false;
-		}
-		$allowBlockList = $whiteWorld->getForbidOption ();
-		foreach ( $allowBlockList as $allowBlock => $bool ) {
-			$block = explode ( ":", $allowBlock );
-			$whiteWorld->setForbidOption ( false, $block [0], $block [1] );
-		}
-		$this->message ( $player, $this->get ( "forbid-block-list-cleared" ) );
-		return true;
-	}
+
 	public function info($level, CommandSender $player) {
 		$whiteWorld = $this->whiteWorldProvider->get ( $level );
-		if (! $whiteWorld instanceof WhiteWorldData) {
+		if (!$whiteWorld instanceof WhiteWorldData){
 			$this->message ( $player, $this->get ( "whiteworld-not-exist" ) );
 			return false;
 		}
@@ -174,20 +71,6 @@ class WhiteWorldManager {
 		$this->message ( $player, $this->get ( "default-auto-area-size" ) . " : " . "{$size[0]}x{$size[1]}" );
 		
 		$this->message ( $player, $this->get ( "manual-block-per-price" ) . " : " . $whiteWorld->getPricePerBlock () . "$" );
-		
-		$allowBlockString = "";
-		foreach ( $whiteWorld->getAllowOption () as $allowOption => $bool )
-			$allowBlockString .= "<{$allowOption}> ";
-		if ($allowBlockString == "")
-			$allowBlockString = $this->get ( "none" );
-		$this->message ( $player, $this->get ( "default-allowed-block" ) . " : " . $allowBlockString );
-		
-		$forbidBlockString = "";
-		foreach ( $whiteWorld->getForbidOption () as $forbidOption => $bool )
-			$forbidBlockString .= "<{$forbidOption}> ";
-		if ($forbidBlockString == "")
-			$forbidBlockString = $this->get ( "none" );
-		$this->message ( $player, $this->get ( "default-forbid-block" ) . " : " . $forbidBlockString );
 		return true;
 	}
 	public function areaPrice($level, $price, CommandSender $player) {
@@ -397,6 +280,23 @@ class WhiteWorldManager {
 		}
 		return true;
 	}
+
+	public function setManualCreateMaxSize($level, $size, CommandSender $player) {
+		$whiteWorld = $this->whiteWorldProvider->get ( $level );
+		if ($whiteWorld instanceof WhiteWorldData) {
+			if (! is_numeric ( $x )) {
+				$this->message ( $player, "수동생성 최대 사이즈는 숫자이어야 합니다." );
+				return false;
+			}
+			$whiteWorld->setManualCreateMaxSize ( $x, $z );
+			$this->message ( $player, "성공적으로 수동생성 최대 사이즈를 변경하였습니다." );
+		} else {
+			$this->message ( $player, $this->get ( "whiteworld-not-exist" ) );
+			return false;
+		}
+		return true;
+	}
+
 	public function get($var) {
 		return $this->plugin->get ( $var );
 	}

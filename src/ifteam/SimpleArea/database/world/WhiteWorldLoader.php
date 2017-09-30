@@ -26,8 +26,6 @@ class WhiteWorldLoader {
 				return;
 			$this->jsons [$level->getFolderName ()] = (new Config ( $filePath, Config::JSON, [ 
 					"protect" => false,
-					"allowOption" => [ ],
-					"forbidOption" => [ ],
 					"defaultAreaPrice" => 5000,
 					"welcome" => "",
 					"pvpAllow" => true,
@@ -42,7 +40,9 @@ class WhiteWorldLoader {
 					"defaultFenceType" => [ 
 							139,
 							1 
-					] 
+					],
+             "manualCreateMinSize" => 10,
+             "manualCreateMaxSize" => 500
 			] ))->getAll ();
 			$this->whiteWorlds [$level->getFolderName ()] = new WhiteWorldData ( $this->jsons [$level->getFolderName ()], $level->getFolderName () );
 			return;
@@ -55,8 +55,6 @@ class WhiteWorldLoader {
 				continue;
 			$this->jsons [$level->getFolderName ()] = (new Config ( $filePath, Config::JSON, [ 
 					"protect" => false,
-					"allowOption" => [ ],
-					"forbidOption" => [ ],
 					"defaultAreaPrice" => 5000,
 					"welcome" => "",
 					"pvpAllow" => true,
@@ -71,7 +69,9 @@ class WhiteWorldLoader {
 					"defaultFenceType" => [ 
 							139,
 							0 
-					] 
+					],
+             "manualCreateMinSize" => 10,
+             "manualCreateMaxSize" => 500
 			] ))->getAll ();
 			$this->whiteWorlds [$level->getFolderName ()] = new WhiteWorldData ( $this->jsons [$level->getFolderName ()], $level->getFolderName () );
 		}

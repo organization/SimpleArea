@@ -14,7 +14,7 @@ class HourTaxCheckTask extends Task {
 	public function __construct(AreaTax $owner) {
 		$this->owner = $owner;
 	}
-	public function onRun($currentTick) {
+	public function onRun(int $currentTick) {
 		$this->owner->payment ();
 	}
 }

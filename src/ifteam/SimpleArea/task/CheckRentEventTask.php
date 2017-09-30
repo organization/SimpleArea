@@ -12,7 +12,7 @@ class CheckRentEventTask extends Task {
 		$this->owner = $owner;
 		$this->event = $event;
 	}
-	public function onRun($currentTick) {
+	public function onRun(int $currentTick) {
 		if (! $this->event->isCancelled ())
 			$this->owner->applyRentEvent ( $this->event );
 	}
