@@ -30,68 +30,23 @@ use ifteam\SimpleArea\database\rent\RentLoader;
 use pocketmine\event\level\LevelInitEvent;
 
 class SimpleArea extends PluginBase implements Listener {
-	/**
-	 *
-	 * @var AreaProvider
-	 */
-	private $areaProvider;
-	/**
-	 *
-	 * @var WhiteWorldProvider
-	 */
+
+	public $areaProvider;
 	private $whiteWorldProvider;
-	/**
-	 *
-	 * @var UserProperties
-	 */
 	private $userProperties;
-	/**
-	 *
-	 * @var AreaTax
-	 */
 	public $areaTax;
-	/**
-	 *
-	 * @var RentPayment
-	 */
 	public $rentPayment;
-	/**
-	 *
-	 * @var EventListener
-	 */
-	private $eventListener;
-	/**
-	 *
-	 * @var AreaManager
-	 */
+	public $eventListener;
 	private $areaManager;
-	/**
-	 *
-	 * @var WhiteWorldManager
-	 */
 	private $whiteWorldManager;
-	/**
-	 *
-	 * @var MineFarmManager
-	 */
 	private $mineFarmManager;
-	/**
-	 *
-	 * @var RentManager
-	 */
 	private $rentManager;
-	/**
-	 *
-	 * @var RentProvider
-	 */
 	private $rentProvider;
-	/**
-	 *
-	 * @var APILoader
-	 */
+
 	public $otherApi;
 	private $m_version = 8;
 	public $messages;
+
 	public function onEnable() {
 		new OldSimpleAreaSupport ( $this );
 		
@@ -118,7 +73,8 @@ class SimpleArea extends PluginBase implements Listener {
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this->userProperties, $this );
 		$this->getServer ()->getPluginManager ()->registerEvents ( $this->eventListener, $this );
 		
-		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new AutoSaveTask ( $this ), 1800 );
+		$this->getServer ()->getScheduler ()->scheduleRepeatingTask ( new AutoSaveTask ( $this ), 18000 );
+ 
 		
 		$this->registerCommand ( $this->get ( "commands-area" ), "simplearea.area", $this->get ( "commands-area-desc" ) );
 		$this->registerCommand ( $this->get ( "commands-rent" ), "simplearea.rent", $this->get ( "commands-rent-desc" ) );
@@ -126,12 +82,12 @@ class SimpleArea extends PluginBase implements Listener {
 		$this->registerCommand ( $this->get ( "commands-minefarm" ), "simplearea.minefarm", $this->get ( "commands-minefarm-desc" ) );
 		$this->registerCommand ( $this->get ( "commands-areatax" ), "simplearea.areatax", $this->get ( "commands-areatax-desc" ) );
 		
-		if (file_exists ( $this->getServer ()->getDataPath () . "worlds/minefarm/level.dat" )) {
-			if (! $this->getServer ()->getLevelByName ( "minefarm" ) instanceof Level) {
-				$this->getServer ()->loadLevel ( "minefarm" );
-				WhiteWorldLoader::getInstance ()->init ( "minefarm" );
-				AreaLoader::getInstance ()->init ( "minefarm" );
-				RentLoader::getInstance ()->init ( "minefarm" );
+		if (file_exists ( $this->getServer ()->getDataPath () . "worlds/island/level.dat" )) {
+			if (! $this->getServer ()->getLevelByName ( "island" ) instanceof Level) {
+				$this->getServer ()->loadLevel ( "island" );
+				WhiteWorldLoader::getInstance ()->init ( "island" );
+				AreaLoader::getInstance ()->init ( "island" );
+				RentLoader::getInstance ()->init ( "island" );
 			}
 		}
 	}
@@ -151,8 +107,8 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($this->whiteWorldProvider instanceof WhiteWorldProvider)
 			$this->whiteWorldProvider->save ( true );
 	}
-	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
-		$this->eventListener->onCommand ( $player, $command, $label, $args );
+	public function onCommand(CommandSender $player, Command $command,string $label, Array $args): bool {
+		return $this->eventListener->onCommand ( $player, $command, $label, $args );
 	}
 	public function onLevelInitEvent(LevelInitEvent $event) {
 		if ($event->getLevel () instanceof Level) {
@@ -177,6 +133,8 @@ class SimpleArea extends PluginBase implements Listener {
 	public function get($var) {
 		return $this->messages [$this->messages ["default-language"] . "-" . $var];
 	}
+
+
 	public function message(CommandSender $player, $text = "", $mark = null) {
 		if ($mark === null)
 			$mark = $this->get ( "default-prefix" );
@@ -187,6 +145,11 @@ class SimpleArea extends PluginBase implements Listener {
 			$mark = $this->get ( "default-prefix" );
 		$player->sendMessage ( TextFormat::RED . $mark . " " . $text );
 	}
+  public function tip(CommandSender $player, $text = "", $mark = null) {
+		$player->sendTip ( $text );
+	}
+
+
 	public function messagesUpdate() {
 		if (! isset ( $this->messages ["default-language"] ["m_version"] )) {
 			$this->saveResource ( "messages.yml", true );

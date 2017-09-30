@@ -389,18 +389,20 @@ class AreaManager {
 			$this->alert ( $player, $this->get ( "commands-area-info-help" ) );
 			return false;
 		}
-		if ( strtolower ( $area->getOwner () ) !== strtolower ( $player->getName () ) ) {
-			$this->alert( $player, $this->get( "here-is-not-your-area" ) );
-			return false;
-		}
-		if ($area->isPvpAllow ()) {
+     if(!$player->isOp()) {
+		  if ( strtolower ( $area->getOwner () ) !== strtolower ( $player->getName () ) ) {
+			 $this->alert( $player, $this->get( "here-is-not-your-area" ) );
+			 return false;
+		  }
+      }
+		 if ($area->isPvpAllow ()) {
 			$area->setPvpAllow ( false );
 			$this->message ( $player, $this->get ( "area-pvp-forbid" ) );
-		} else {
-			$area->setPvpAllow ( true );
-			$this->message ( $player, $this->get ( "area-pvp-allowed" ) );
-		}
-		return true;
+	    } else {
+		   $area->setPvpAllow ( true );
+		   $this->message ( $player, $this->get ( "area-pvp-allowed" ) );
+		  }
+		  return true;
 	}
 	public function accessDeny(Player $player) {
 		$whiteWorld = $this->whiteWorldProvider->get ( $player->getLevel () );
@@ -539,146 +541,6 @@ class AreaManager {
 		}
 		return true;
 	}
-	public function allowBlock(Player $player, $block, $bool = true) {
-		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
-		if (! $area instanceof AreaSection) {
-			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
-			$this->alert ( $player, $this->get ( "commands-area-info-help" ) );
-			return false;
-		}
-		if (! $player->isOp ()) {
-			if ($area->getOwner () !== strtolower ( $player->getName () )) {
-				$this->alert ( $player, $this->get ( "youre-not-owner" ) );
-				return false;
-			}
-		}
-		$block = explode ( ":", $block );
-		if (isset ( $block [1] )) {
-			if (! is_numeric ( $block [0] ) or ! is_numeric ( $block [1] )) {
-				$this->message ( $player, $this->get ( "block-id-must-numeric" ) );
-				$this->message ( $player, $this->get ( "block-damage-must-numeric" ) );
-				return false;
-			}
-		} else {
-			if (! is_numeric ( $block [0] )) {
-				$this->message ( $player, $this->get ( "block-id-must-numeric" ) );
-				return false;
-			}
-			$block [1] = "*";
-		}
-		$area->setAllowOption ( $bool, $block [0], $block [1] );
-		if ($bool) {
-			$this->message ( $player, $this->get ( "allowblock-list-added" ) );
-		} else {
-			$this->message ( $player, $this->get ( "allowblock-list-deleted" ) );
-		}
-		return true;
-	}
-	public function allowBlockList(Player $player) {
-		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
-		if (! $area instanceof AreaSection) {
-			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
-			$this->alert ( $player, $this->get ( "commands-area-info-help" ) );
-			return false;
-		}
-		$allowBlockList = $area->getAllowOption ();
-		$this->message ( $player, $this->get ( "show-allowed-block-list" ) );
-		$listString = "";
-		foreach ( $allowBlockList as $allowBlock => $bool )
-			$listString = "<{$allowBlock}> ";
-		$this->message ( $player, $listString );
-		return true;
-	}
-	public function allowBlockClear(Player $player) {
-		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
-		if (! $area instanceof AreaSection) {
-			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
-			$this->alert ( $player, $this->get ( "commands-area-info-help" ) );
-			return false;
-		}
-		if (! $player->isOp ()) {
-			if ($area->getOwner () !== strtolower ( $player->getName () )) {
-				$this->alert ( $player, $this->get ( "youre-not-owner" ) );
-				return false;
-			}
-		}
-		$allowBlockList = $area->getAllowOption ();
-		foreach ( $allowBlockList as $allowBlock => $bool ) {
-			$block = explode ( ":", $allowBlock );
-			$area->setAllowOption ( false, $block [0], $block [1] );
-		}
-		$this->message ( $player, $this->get ( "allowed-block-list-cleared" ) );
-		return true;
-	}
-	public function forbidBlock(Player $player, $block, $bool = true) {
-		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
-		if (! $area instanceof AreaSection) {
-			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
-			$this->alert ( $player, $this->get ( "commands-area-info-help" ) );
-			return false;
-		}
-		if (! $player->isOp ()) {
-			if ($area->getOwner () !== strtolower ( $player->getName () )) {
-				$this->alert ( $player, $this->get ( "youre-not-owner" ) );
-				return false;
-			}
-		}
-		$block = explode ( ":", $block );
-		if (isset ( $block [1] )) {
-			if (! is_numeric ( $block [0] ) or ! is_numeric ( $block [1] )) {
-				$this->message ( $player, $this->get ( "block-id-must-numeric" ) );
-				$this->message ( $player, $this->get ( "block-damage-must-numeric" ) );
-				return false;
-			}
-		} else {
-			if (! is_numeric ( $block [0] )) {
-				$this->message ( $player, $this->get ( "block-id-must-numeric" ) );
-				return false;
-			}
-			$block [1] = "*";
-		}
-		$area->setForbidOption ( $bool, $block [0], $block [1] );
-		if ($bool) {
-			$this->message ( $player, $this->get ( "forbidblock-list-added" ) );
-		} else {
-			$this->message ( $player, $this->get ( "forbidblock-list-deleted" ) );
-		}
-		return true;
-	}
-	public function forbidBlockList(Player $player) {
-		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
-		if (! $area instanceof AreaSection) {
-			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
-			$this->alert ( $player, $this->get ( "commands-area-info-help" ) );
-			return false;
-		}
-		$forbidBlockList = $area->getForbidOption ();
-		$this->message ( $player, $this->get ( "show-forbid-block-list" ) );
-		$listString = "";
-		foreach ( $forbidBlockList as $forbidBlock => $bool )
-			$listString = "<{$forbidBlock}> ";
-		$this->message ( $player, $listString );
-	}
-	public function forbidBlockClear(Player $player) {
-		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
-		if (! $area instanceof AreaSection) {
-			$this->alert ( $player, $this->get ( "area-doesent-exist" ) );
-			$this->alert ( $player, $this->get ( "commands-area-info-help" ) );
-			return false;
-		}
-		if (! $player->isOp ()) {
-			if ($area->getOwner () !== strtolower ( $player->getName () )) {
-				$this->alert ( $player, $this->get ( "youre-not-owner" ) );
-				return false;
-			}
-		}
-		$forbidBlockList = $area->getAllowOption ();
-		foreach ( $forbidBlockList as $forbidBlock => $bool ) {
-			$block = explode ( ":", $forbidBlock );
-			$area->setForbidOption ( false, $block [0], $block [1] );
-		}
-		$this->message ( $player, $this->get ( "forbid-block-list-cleared" ) );
-	}
 	public function areaPrice(Player $player, $price) {
 		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
 		if (! $area instanceof AreaSection) {
@@ -718,6 +580,7 @@ class AreaManager {
 				}
 			} else {
 				if (! is_numeric ( $block [0] )) {
+
 					$this->alert ( $player, $this->get ( "wrong-block-id-and-damage" ) );
 					return false;
 				}

@@ -4,7 +4,7 @@ namespace ifteam\SimpleArea\database\minefarm;
 
 use ifteam\SimpleArea\SimpleArea;
 use pocketmine\level\generator\Generator;
-use pocketmine\level\format\Chunk as FullChunk;
+use pocketmine\level\format\FullChunk;
 use pocketmine\level\generator\object\Tree;
 use pocketmine\Server;
 use ifteam\SimpleArea\database\area\AreaProvider;
@@ -48,11 +48,11 @@ class MineFarmLoader {
 	}
 	public function createWorld() {
 		$generator = Generator::getGenerator ( "flat" );
-		$bool = $this->server->generateLevel ( "minefarm", null, $generator, [ 
+		$bool = $this->server->generateLevel ( "island", null, $generator, [ 
 				"preset" => "2;0;1" 
 		] );
 		if ($bool) {
-			$whiteWorld = $this->whiteWorldProvider->get ( "minefarm" );
+			$whiteWorld = $this->whiteWorldProvider->get ( "island" );
 			$whiteWorld->setManualCreate ( false );
 			$whiteWorld->setAutoCreateAllow ( false );
 			$whiteWorld->setProtect ( true );
@@ -68,18 +68,18 @@ class MineFarmLoader {
 		$index = $this->getIndex ();
 		$defaultAreaSize = 200;
 		$defaultFarmSize = 16;
-		$farmX = 0;
-		$farmZ = ($defaultAreaSize + 2) * $index;
+		$farmX = ($defaultAreaSize + 2) * (int) ($index / 1000);
+        $farmZ = ($defaultAreaSize + 2) * ($index % 1000);
 		
 		$startX = ( int ) round ( $farmX - ($defaultAreaSize / 2) );
 		$endX = ( int ) round ( $farmX + ($defaultAreaSize / 2) );
 		$startZ = ( int ) round ( $farmZ - ($defaultAreaSize / 2) );
 		$endZ = ( int ) round ( $farmZ + ($defaultAreaSize / 2) );
 		
-		$area = $this->areaProvider->addArea ( "minefarm", $startX, $endX, $startZ, $endZ, $owner, true, false );
+		$area = $this->areaProvider->addArea ( "island", $startX, $endX, $startZ, $endZ, $owner, true, false );
 		
 		$center = $area->getCenter ();
-		$level = $this->server->getLevelByName ( "minefarm" );
+		$level = $this->server->getLevelByName ( "island" );
 		
 		$startX = ( int ) round ( $center->x - ($defaultFarmSize / 2) );
 		$endX = ( int ) round ( $center->x + ($defaultFarmSize / 2) );
@@ -89,23 +89,21 @@ class MineFarmLoader {
 		for($x = $startX; $x <= $endX; $x ++) {
 			for($z = $startZ; $z <= $endZ; $z ++) {
 				$chunk = $level->getChunk ( $x >> 4, $z >> 4, true );
-				if ($chunk instanceof FullChunk) {
+			//	if ($chunk instanceof FullChunk) {
 					if (! $chunk->isGenerated ())
 						$chunk->setGenerated ( true );
 					if (! $chunk->isPopulated ())
 						$chunk->setPopulated ( true );
-				}
+			//	}
 				$center->setComponents ( $x, 0, $z );
 				$level->setBlock ( $center, Block::get ( Block::BEDROCK ) );
 				$center->setComponents ( $x, 1, $z );
-				$level->setBlock ( $center, Block::get ( Block::DIRT ) );
+				$level->setBlock ( $center, Block::get ( Block::BEDROCK ) );
 				$center->setComponents ( $x, 2, $z );
 				$level->setBlock ( $center, Block::get ( Block::DIRT ) );
 				$center->setComponents ( $x, 3, $z );
 				$level->setBlock ( $center, Block::get ( Block::GRASS ) );
-				$center->setComponents ( $x, 4, $z );
-				(mt_rand ( 0, 4 ) !== 1) ? $type = Block::TALL_GRASS : $type = Block::POPPY;
-				$level->setBlock ( $center, Block::get ( $type ) );
+
 			}
 		}
 		
@@ -121,13 +119,13 @@ class MineFarmLoader {
 		if ($owner instanceof Player)
 			$owner = $owner->getName ();
 		$owner = strtolower ( $owner );
-		return $this->userProperties->getUserProperties ( $owner, "minefarm" );
+		return $this->userProperties->getUserProperties ( $owner, "island" );
 	}
 	public function delMineFarm($id) {
 		$this->areaProvider->deleteArea ( $level, $id );
 	}
 	public function getIndex() {
-		return AreaLoader::getInstance ()->get ( "minefarm", "areaIndex" );
+		return AreaLoader::getInstance ()->get ( "island", "areaIndex" );
 	}
 }
 ?>

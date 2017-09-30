@@ -39,48 +39,20 @@ use pocketmine\event\player\PlayerQuitEvent;
 
 class EventListener implements Listener {
 	private $plugin;
-	/**
-	 *
-	 * @var AreaProvider
-	 */
 	private $areaProvider;
-	/**
-	 *
-	 * @var WhiteWorldProvider
-	 */
 	private $whiteWorldProvider;
-	/**
-	 *
-	 * @var UserProperties
-	 */
 	private $userProperties;
-	/**
-	 *
-	 * @var AreaManager
-	 */
 	private $areaManager;
-	/**
-	 *
-	 * @var WhiteWorldManager
-	 */
 	private $whiteworldManager;
-	/**
-	 *
-	 * @var MineFarmManager
-	 */
 	private $mineFarmManager;
-	/**
-	 *
-	 * @var RentProvider
-	 */
 	private $rentProvider;
-	/**
-	 *
-	 * @var RentManager
-	 */
+
 	private $rentManager;
-	private $queue;
-	private $waterLists = [ ];
+	public $queue;
+
+  /* solo */
+  public $movelist = [];
+
 	public function __construct(SimpleArea $plugin) {
 		$this->plugin = $plugin;
 		$this->areaProvider = AreaProvider::getInstance ();
@@ -91,8 +63,104 @@ class EventListener implements Listener {
 		$this->whiteworldManager = WhiteWorldManager::getInstance ();
 		$this->mineFarmManager = MineFarmManager::getInstance ();
 		$this->rentManager = RentManager::getInstance ();
-	}
-	public function onCommand(CommandSender $player, Command $command, $label, Array $args) {
+
+ }
+
+
+  public function onMove(PlayerMoveEvent $event){
+    $user = strtolower($event->getPlayer()->getName());
+
+    if(isset($this->movelist[$user]))
+      if($this->movelist[$user] > microtime(true))
+        return;
+
+    $this->movelist[$user] = microtime(true) + 1.5;
+
+    $player = $event->getPlayer();
+    $posX = $player->getFloorX();
+    $posY = $player->y;
+    $posZ = $player->getFloorZ();
+    $level = $player->getLevel();
+
+    if (!isset($this->queue['movePos'][$user])){ 
+      $this->queue['movePos'][$user] = [ 
+        'x' => $posX,
+        'z' => $posZ,
+        'areaId' => -1,
+        'rentId' => -1
+      ];
+    }else if (
+      abs( ($posX) - ($this->queue ['movePos'][$user]['x']) ) > 2 ||
+      abs ( ($posZ) - ($this->queue ['movePos'][$user] ['z']) ) > 2
+    ){
+      $this->queue['movePos'][$user]['x'] = $posX;
+      $this->queue['movePos'][$user]['z'] = $posZ;
+    } else {
+      return;
+    }//!isset movePos
+
+     $msg = '';
+     $area = $this->areaProvider->getArea ($level, $posX, $posZ, $user); 
+     if($area instanceof AreaSection) {
+       if (!$player->isOp()){
+         if ($area->isAccessDeny() && ! $area->isResident($user)){
+           $x = $area->get ( "startX" ) - 2;
+           $z = $area->get ( "startZ" ) - 2;
+           $y = $level->getHighestBlockAt($x, $z);
+           $player->teleport(new Vector3 ($x, $y, $z));
+           $msg .= '§c'.$this->get ('this-area-is-only-can-access-resident')."\n";
+         }
+       }
+
+       if ($this->queue['movePos'][$user]['areaId'] != $area->getId()){
+         $welcomeMsg = $area->getWelcome ();
+         if ($area->isHome ()) {
+           if ($area->isOwner($user)) {
+             $msg .= '§b'.$this->get ('welcome-area-sir')."\n";
+             if ($welcomeMsg == null)
+               $msg .= '§b'.$this->get ('please-set-to-welcome-msg')."\n";
+           } else {
+             if($area->getOwner () != '')
+               $msg .= '§b'.$this->get ( "here-is" ) . $area->getOwner () . $this->get ( "his-land" )."\n";
+             if ($welcomeMsg != null)
+               $msg .= '§b'.$welcomeMsg."\n";
+           }
+         }else if ($player->isOp()) {
+           $msg .= '§b'.$this->get ( "welcome-op-area-sir" ) ."\n";
+           if ($welcomeMsg == null)
+             $msg .= '§b'.$this->get ( "please-set-to-welcome-msg" ) ."\n";
+           }
+           if ($area->isCanBuy ()) {
+             $msg .= '§b'.$this->get ( 'you-can-buy-here' ) . $area->getPrice () . " " . $this->get ( 'show-buy-command' ) ."\n";
+           }
+        }
+
+        $this->queue ['movePos'][$user]['areaId'] = $area->getId ();
+       }
+
+        //Rent Part
+       $rent = $this->rentProvider->getRent ($level, $posX, $posY, $posZ);
+       if ($rent instanceof RentSection) {
+         if ($this->queue['movePos'][$user]['rentId'] != $rent->getRentId ()) {
+          $welcomeMsg = $rent->getWelcome ();
+          if ($welcomeMsg != null)
+            $msg .= '§b'.$welcomeMsg."\n";
+          if ($rent->isOwner ($user)) {
+            $msg .= '§b'.$this->get ( "welcome-rent-area-sir" ) ."\n";
+            if ($welcomeMsg == null)
+              $msg .= '§b'.$this->get ( "please-set-to-welcome-msg" ) ."\n";
+          }
+          $this->queue['movePos'][$user]['rentId'] = $rent->getRentId();
+     	 }
+     } //$area instanceof AreaSection
+    if($msg != '')
+      $this->tip($player, $msg);
+
+  }
+
+
+
+	public function onCommand(CommandSender $player, Command $command,string $label, Array $args): bool {
 		if (! $player instanceof Player) {
 			switch (strtolower ( $command )) {
 				case $this->get ( "commands-area" ) :
@@ -127,13 +195,7 @@ class EventListener implements Listener {
 		switch (strtolower ( $command->getName () )) {
 			case $this->get ( "commands-area" ) :
 				if (! isset ( $args [0] )) {
-					$this->message ( $player, $this->get ( "commands-area-help-1" ) );
-					$this->message ( $player, $this->get ( "commands-area-help-2" ) );
-					$this->message ( $player, $this->get ( "commands-area-help-3" ) );
-					$this->message ( $player, $this->get ( "commands-area-help-4" ) );
-					$this->message ( $player, $this->get ( "commands-area-help-5" ) );
-					$this->message ( $player, $this->get ( "commands-area-help-6" ) );
-					return true;
+					$args[0] = 'default';
 				}
 				switch (strtolower ( $args [0] )) {
 					case $this->get ( "commands-area-move" ) :
@@ -229,6 +291,7 @@ class EventListener implements Listener {
 						$after = $this->makeTimestamp ();
 						$timeout = intval ( $after - $before );
 						
+
 						if ($timeout <= 10) {
 							$this->areaManager->sell ( $player );
 						} else {
@@ -288,48 +351,6 @@ class EventListener implements Listener {
 						if (! $player->hasPermission ( "simplearea.area.protect" ))
 							return false;
 						$this->areaManager->protect ( $player );
-						break;
-					case $this->get ( "commands-area-allowblock" ) :
-						if (! $player->hasPermission ( "simplearea.area.allowblock" ))
-							return false;
-						if (! isset ( $args [1] ) or ! isset ( $args [2] )) {
-							if (isset ( $args [1] )) {
-								if ($args [1] == $this->get ( "subcommands-list" )) {
-									$this->areaManager->allowBlockList ( $player );
-									return true;
-								}
-								if ($args [1] == $this->get ( "subcommands-clear" )) {
-									$this->areaManager->allowBlockClear ( $player );
-									return true;
-								}
-							}
-							$this->message ( $player, $this->get ( "commands-area-allowblock-help" ) );
-							$this->message ( $player, $this->get ( "commands-area-allowblock-help-1" ) );
-							return true;
-						}
-						$args [1] == $this->get ( "subcommands-add" ) ? $bool = true : $bool = false;
-						$this->areaManager->allowBlock ( $player, $args [2], $bool );
-						break;
-					case $this->get ( "commands-area-forbidblock" ) :
-						if (! $player->hasPermission ( "simplearea.area.forbidblock" ))
-							return false;
-						if (! isset ( $args [1] ) or ! isset ( $args [2] )) {
-							if (isset ( $args [1] )) {
-								if ($args [1] == $this->get ( "subcommands-list" )) {
-									$this->areaManager->forbidBlockList ( $player );
-									return true;
-								}
-								if ($args [1] == $this->get ( "subcommands-clear" )) {
-									$this->areaManager->forbidBlockClear ( $player );
-									return true;
-								}
-							}
-							$this->message ( $player, $this->get ( "commands-area-forbidblock-help" ) );
-							$this->message ( $player, $this->get ( "commands-area-forbidblock-help-1" ) );
-							return true;
-						}
-						$args [1] == $this->get ( "subcommands-add" ) ? $bool = true : $bool = false;
-						$this->areaManager->forbidBlock ( $player, $args [2], $bool );
 						break;
 					case $this->get ( "commands-area-areaprice" ) :
 						if (! $player->hasPermission ( "simplearea.area.areaprice" ))
@@ -531,104 +552,7 @@ class EventListener implements Listener {
 							return false;
 						$this->areaManager->pvpallow ( $player );
 						break;
-					case "?" :
-						if (! isset ( $args [1] )) {
-							$this->message ( $player, $this->get ( "commands-area-help-1" ) );
-							$this->message ( $player, $this->get ( "commands-area-help-2" ) );
-							$this->message ( $player, $this->get ( "commands-area-help-3" ) );
-							$this->message ( $player, $this->get ( "commands-area-help-4" ) );
-							$this->message ( $player, $this->get ( "commands-area-help-5" ) );
-							$this->message ( $player, $this->get ( "commands-area-help-6" ) );
-							return true;
-						}
-						switch (strtolower ( $args [1] )) {
-							case $this->get ( "commands-area-move" ) :
-								$this->message ( $player, $this->get ( "commands-area-move-help" ) );
-								break;
-							case $this->get ( "commands-area-autocreate" ) :
-								$this->message ( $player, $this->get ( "commands-area-autocreate-help" ) );
-								break;
-							case $this->get ( "commands-area-manualcreate" ) :
-								$this->message ( $player, $this->get ( "commands-area-manualcreate-help" ) );
-								break;
-							case $this->get ( "commands-area-buy" ) :
-								$this->message ( $player, $this->get ( "commands-area-buy-help" ) );
-								break;
-							case $this->get ( "commands-area-sell" ) :
-								$this->message ( $player, $this->get ( "commands-area-sell-help" ) );
-								break;
-							case $this->get ( "commands-area-give" ) :
-								$this->message ( $player, $this->get ( "commands-area-give-help" ) );
-								break;
-							case $this->get ( "commands-area-canbuylist" ) :
-								$this->message ( $player, $this->get ( "commands-area-canbuylist-help" ) );
-								break;
-							case $this->get ( "commands-area-info" ) :
-								$this->message ( $player, $this->get ( "commands-area-info-help" ) );
-								break;
-							case $this->get ( "commands-area-share" ) :
-								$this->message ( $player, $this->get ( "commands-area-share-help" ) );
-								break;
-							case $this->get ( "commands-area-deport" ) :
-								$this->message ( $player, $this->get ( "commands-area-deport-help" ) );
-								break;
-							case $this->get ( "commands-area-getlist" ) :
-								$this->message ( $player, $this->get ( "commands-area-getlist-help" ) );
-								break;
-							case $this->get ( "commands-area-sharelist" ) :
-								$this->message ( $player, $this->get ( "commands-area-sharelist-help" ) );
-								break;
-							case $this->get ( "commands-area-welcome" ) :
-								$this->message ( $player, $this->get ( "commands-area-welcome-help" ) );
-								break;
-							case $this->get ( "commands-area-protect" ) :
-								$this->message ( $player, $this->get ( "commands-area-protect-help" ) );
-								break;
-							case $this->get ( "commands-area-allowblock" ) :
-								$this->message ( $player, $this->get ( "commands-area-allowblock-help" ) );
-								$this->message ( $player, $this->get ( "commands-area-allowblock-help-1" ) );
-								break;
-							case $this->get ( "commands-area-forbidblock" ) :
-								$this->message ( $player, $this->get ( "commands-area-forbidblock-help" ) );
-								$this->message ( $player, $this->get ( "commands-area-forbidblock-help-1" ) );
-								break;
-							case $this->get ( "commands-area-areaprice" ) :
-								$this->message ( $player, $this->get ( "commands-area-areaprice-help" ) );
-								break;
-							case $this->get ( "commands-area-setfence" ) :
-								$this->message ( $player, $this->get ( "commands-area-setfence-help" ) );
-								break;
-							case $this->get ( "commands-area-setinvensave" ) :
-								$this->message ( $player, $this->get ( "commands-area-setinvensave-help" ) );
-								break;
-							case $this->get ( "commands-area-changemode" ) :
-								$this->message ( $player, $this->get ( "commands-area-changemode-help" ) );
-								break;
-							case $this->get ( "commands-area-abandon" ) :
-								$this->message ( $player, $this->get ( "commands-area-abandon-help" ) );
-								break;
-							case $this->get ( "commands-area-accessdeny" ) :
-								$this->message ( $player, $this->get ( "commands-area-accessdeny-help" ) );
-								break;
-							case $this->get ( "commands-area-sizeup" ) :
-								$this->message ( $player, $this->get ( "commands-area-sizeup-help" ) );
-								break;
-							case $this->get ( "commands-area-sizedown" ) :
-								$this->message ( $player, $this->get ( "commands-area-sizedown-help" ) );
-								break;
-							case $this->get ( "commands-area-pvpallow" ) :
-								$this->message ( $player, $this->get ( "commands-area-pvpallow-help" ) );
-								break;
-							default :
-								$this->message ( $player, $this->get ( "commands-area-help-1" ) );
-								$this->message ( $player, $this->get ( "commands-area-help-2" ) );
-								$this->message ( $player, $this->get ( "commands-area-help-3" ) );
-								$this->message ( $player, $this->get ( "commands-area-help-4" ) );
-								$this->message ( $player, $this->get ( "commands-area-help-5" ) );
-								$this->message ( $player, $this->get ( "commands-area-help-6" ) );
-								break;
-						}
-						break;
+
 					default :
 						$this->message ( $player, $this->get ( "commands-area-help-1" ) );
 						$this->message ( $player, $this->get ( "commands-area-help-2" ) );
@@ -636,7 +560,11 @@ class EventListener implements Listener {
 						$this->message ( $player, $this->get ( "commands-area-help-4" ) );
 						$this->message ( $player, $this->get ( "commands-area-help-5" ) );
 						$this->message ( $player, $this->get ( "commands-area-help-6" ) );
-						break;
+						$this->message ( $player, $this->get ( "commands-area-help-7" ) );
+						$this->message ( $player, $this->get ( "commands-area-help-8" ) );
+						$this->message ( $player, $this->get ( "commands-area-help-9" ) );
+						$this->message ( $player, $this->get ( "commands-area-help-10" ) );
+						$this->message ( $player, $this->get ( "commands-area-help-11" ) );
 				}
 				break;
 			case $this->get ( "commands-whiteworld" ) :
@@ -650,58 +578,22 @@ class EventListener implements Listener {
 					return true;
 				}
 				switch (strtolower ( $args [0] )) {
+
+
 					case $this->get ( "commands-whiteworld-info" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.info" ))
 							return false;
 						$this->whiteworldManager->info ( $player->getLevel (), $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-protect" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.protect" ))
 							return false;
 						$this->whiteworldManager->protect ( $player->getLevel (), $player );
 						break;
-					case $this->get ( "commands-whiteworld-allowblock" ) :
-						if (! $player->hasPermission ( "simplearea.whiteworld.allowblock" ))
-							return false;
-						if (! isset ( $args [1] ) or ! isset ( $args [2] )) {
-							if (isset ( $args [1] )) {
-								if ($args [1] == $this->get ( "subcommands-list" )) {
-									$this->whiteworldManager->allowBlockList ( $player->getLevel (), $player );
-									return true;
-								}
-								if ($args [1] == $this->get ( "subcommands-clear" )) {
-									$this->whiteworldManager->allowBlockClear ( $player->getLevel (), $player );
-									return true;
-								}
-							}
-							$this->message ( $player, $this->get ( "commands-whiteworld-allowblock-help" ) );
-							$this->message ( $player, $this->get ( "commands-whiteworld-allowblock-help-1" ) );
-							return true;
-						}
-						$args [1] == $this->get ( "subcommands-add" ) ? $bool = true : $bool = false;
-						$this->whiteworldManager->allowBlock ( $player->getLevel (), $args [2], $bool, $player );
-						break;
-					case $this->get ( "commands-whiteworld-forbidblock" ) :
-						if (! $player->hasPermission ( "simplearea.whiteworld.forbidblock" ))
-							return false;
-						if (! isset ( $args [1] ) or ! isset ( $args [2] )) {
-							if (isset ( $args [1] )) {
-								if ($args [1] == $this->get ( "subcommands-list" )) {
-									$this->whiteworldManager->forbidBlockList ( $player->getLevel (), $player );
-									return true;
-								}
-								if ($args [1] == $this->get ( "subcommands-clear" )) {
-									$this->whiteworldManager->forbidBlockClear ( $player->getLevel (), $player );
-									return true;
-								}
-							}
-							$this->message ( $player, $this->get ( "commands-whiteworld-forbidblock-help" ) );
-							$this->message ( $player, $this->get ( "commands-whiteworld-forbidblock-help-1" ) );
-							return true;
-						}
-						$args [1] == $this->get ( "subcommands-add" ) ? $bool = true : $bool = false;
-						$this->whiteworldManager->forbidBlock ( $player->getLevel (), $args [2], $bool, $player );
-						break;
+
+
 					case $this->get ( "commands-whiteworld-areaprice" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.areaprice" ))
 							return false;
@@ -711,6 +603,8 @@ class EventListener implements Listener {
 						}
 						$this->whiteworldManager->areaPrice ( $player->getLevel (), $args [1], $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-setfence" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.setfence" ))
 							return false;
@@ -720,21 +614,29 @@ class EventListener implements Listener {
 						}
 						$this->whiteworldManager->setFence ( $player->getLevel (), $args [1], $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-setinvensave" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.setinvensave" ))
 							return false;
 						$this->whiteworldManager->setInvenSave ( $player->getLevel (), $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-setautocreateallow" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.setautocreateallow" ))
 							return false;
 						$this->whiteworldManager->setAutoCreateAllow ( $player->getLevel (), $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-setmanualcreate" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.setmanualcreate" ))
 							return false;
 						$this->whiteworldManager->setManualCreate ( $player->getLevel (), $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-areaholdlimit" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.areaholdlimit" ))
 							return false;
@@ -744,6 +646,8 @@ class EventListener implements Listener {
 						}
 						$this->whiteworldManager->areaHoldLimit ( $player->getLevel (), $args [1], $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-defaultareasize" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.defaultareasize" ))
 							return false;
@@ -758,21 +662,29 @@ class EventListener implements Listener {
 							return false;
 						$this->whiteworldManager->setAccessDeny ( $player->getLevel (), $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-sizeup" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.defaultareasize" ))
 							return false;
 						$this->whiteworldManager->setAreaSizeUp ( $player->getLevel (), $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-sizedown" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.defaultareasize" ))
 							return false;
 						$this->whiteworldManager->setAreaSizeDown ( $player->getLevel (), $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-pvpallow" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.pvpallow" ))
 							return false;
 						$this->whiteworldManager->pvpAllow ( $player->getLevel (), $player );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-priceperblock" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.priceperblock" ))
 							return false;
@@ -782,11 +694,15 @@ class EventListener implements Listener {
 						}
 						$this->whiteworldManager->setPricePerBlock ( $player->getLevel (), $player, $args [1] );
 						break;
+
+
 					case $this->get ( "commands-whiteworld-checkshare" ) :
 						if (! $player->hasPermission ( "simplearea.whiteworld.checkshare" ))
 							return false;
 						$this->whiteworldManager->setCountShareArea ( $player->getLevel (), $player );
 						break;
+
+
 					case "?" :
 						if (! isset ( $args [1] )) {
 							$this->message ( $player, $this->get ( "commands-whiteworld-help-1" ) );
@@ -804,14 +720,6 @@ class EventListener implements Listener {
 							case $this->get ( "commands-whiteworld-protect" ) :
 								$this->message ( $player, $this->get ( "commands-whiteworld-protect-help" ) );
 								break;
-							case $this->get ( "commands-whiteworld-allowblock" ) :
-								$this->message ( $player, $this->get ( "commands-whiteworld-allowblock-help" ) );
-								$this->message ( $player, $this->get ( "commands-whiteworld-allowblock-help-1" ) );
-								break;
-							case $this->get ( "commands-whiteworld-forbidblock" ) :
-								$this->message ( $player, $this->get ( "commands-whiteworld-forbidblock-help" ) );
-								$this->message ( $player, $this->get ( "commands-whiteworld-forbidblock-help-1" ) );
-								break;
 							case $this->get ( "commands-whiteworld-areaprice" ) :
 								$this->message ( $player, $this->get ( "commands-whiteworld-areaprice-help" ) );
 								break;
@@ -823,6 +731,7 @@ class EventListener implements Listener {
 								break;
 							case $this->get ( "commands-whiteworld-defaultareasize" ) :
 								$this->message ( $player, $this->get ( "commands-whiteworld-defaultareasize-help" ) );
+
 								break;
 							case $this->get ( "commands-whiteworld-accessdeny" ) :
 								$this->message ( $player, $this->get ( "commands-whiteworld-accessdeny-help" ) );
@@ -874,8 +783,9 @@ class EventListener implements Listener {
 			case $this->get ( "commands-minefarm" ) :
 				if (! isset ( $args [0] )) {
 					$this->message ( $player, $this->get ( "commands-minefarm-help-1" ) );
+					$this->message ( $player, $this->get ( "commands-minefarm-help-2" ) );
+ 
 					if ($player->isOp ())
-						$this->message ( $player, $this->get ( "commands-minefarm-help-2" ) );
 					$this->message ( $player, $this->get ( "commands-minefarm-help-3" ) );
 					$this->message ( $player, $this->get ( "commands-minefarm-help-4" ) );
 					$this->message ( $player, $this->get ( "commands-minefarm-help-5" ) );
@@ -1131,7 +1041,7 @@ class EventListener implements Listener {
 		$this->onBlockChangeEvent ( $event );
 	}
 	public function onBlockBreakEvent(BlockBreakEvent $event) {
-		$area = $this->areaProvider->getArea ( $event->getBlock ()->level, $event->getBlock ()->x, $event->getBlock ()->z );
+		$area = $this->areaProvider->getArea ( $event->getBlock ()->level, $event->getBlock ()->x, $event->getBlock ()->z, strtolower($event->getPlayer()->getName()));
 		if ($area instanceof AreaSection) {
 			$rent = $this->rentProvider->getRent ( $event->getBlock ()->level, $event->getBlock ()->x, $event->getBlock ()->y, $event->getBlock ()->z );
 			if (($rent instanceof RentSection) and ! $rent->isBuySingNull ()) {
@@ -1194,10 +1104,8 @@ class EventListener implements Listener {
 				return;
 			$lines = $sign->getText ();
 			
-			if ($lines [0] != $this->get ( "automatic-post-1" ) or $lines [3] != $this->get ( "automatic-post-4" ))
-				return;
-			if ($lines [2] != $this->get ( "automatic-post-3" ))
-				return;
+			if ($lines [0] == $this->get ( "automatic-post-1" ) && $lines [3] == $this->get ( "automatic-post-4" ))
+			if ($lines [2] == $this->get ( "automatic-post-3" )){
 			
 			if (! $event->getPlayer ()->isOp ()) {
 				$event->setCancelled ();
@@ -1239,11 +1147,12 @@ class EventListener implements Listener {
 			if (isset ( $this->queue ["autoPostDelete"] [strtolower ( $event->getPlayer ()->getName () )] ))
 				unset ( $this->queue ["autoPostDelete"] [strtolower ( $event->getPlayer ()->getName () )] );
 			return;
+       }
 		}
 		$this->onBlockChangeEvent ( $event );
 	}
 	public function onSignChangeEvent(SignChangeEvent $event) {
-		$area = $this->areaProvider->getArea ( $event->getBlock ()->level, $event->getBlock ()->x, $event->getBlock ()->z );
+		$area = $this->areaProvider->getArea ( $event->getBlock ()->level, $event->getBlock ()->x, $event->getBlock ()->z, strtolower($event->getPlayer()->getName()) );
 		if ($area instanceof AreaSection) {
 			$rent = $this->rentProvider->getRent ( $event->getBlock ()->level, $event->getBlock ()->x, $event->getBlock ()->y, $event->getBlock ()->z );
 			if (($rent instanceof RentSection) and $rent->isBuySingNull ()) {
@@ -1312,10 +1221,15 @@ class EventListener implements Listener {
 		}
 		$this->onBlockChangeEvent ( $event );
 	}
+
+
+
+
+
 	public function onBlockChangeEvent(Event $event) {
 		if ($event->getPlayer ()->isOp ())
 			return;
-		$area = $this->areaProvider->getArea ( $event->getBlock ()->getLevel (), $event->getBlock ()->x, $event->getBlock ()->z );
+		$area = $this->areaProvider->getArea ( $event->getBlock ()->getLevel (), $event->getBlock ()->x, $event->getBlock ()->z, strtolower($event->getPlayer()->getName()) );
 		if ($area instanceof AreaSection) {
 			if ($area->isHome ())
 				if ($area->isResident ( $event->getPlayer ()->getName () ))
@@ -1327,8 +1241,6 @@ class EventListener implements Listener {
 				if ($rent->isOwner ( $event->getPlayer ()->getName () ))
 					return;
 			if ($area->isProtected ()) {
-				if ($area->isAllowOption ( $event->getBlock ()->getId (), $event->getBlock ()->getDamage () ))
-					return;
 				switch (true) {
 					case $event instanceof BlockPlaceEvent :
 						$type = AreaModifyEvent::PLACE_PROTECT_AREA;
@@ -1349,27 +1261,6 @@ class EventListener implements Listener {
 				$event->setCancelled ();
 				return;
 			}
-			if ($area->isForbidOption ( $event->getBlock ()->getId (), $event->getBlock ()->getDamage () )) {
-				switch (true) {
-					case $event instanceof BlockPlaceEvent :
-						$type = AreaModifyEvent::PLACE_FORBID;
-						break;
-					case $event instanceof BlockBreakEvent :
-						$type = AreaModifyEvent::BREAK_FORBID;
-						break;
-					case $event instanceof SignChangeEvent :
-						$type = AreaModifyEvent::SIGN_CHANGE_FORBID;
-						break;
-				}
-				if (isset ( $type )) {
-					$ev = new AreaModifyEvent ( $event->getPlayer (), $event->getBlock ()->getLevel ()->getFolderName (), $area->getId (), $event->getBlock (), $type );
-					$this->plugin->getServer ()->getPluginManager ()->callEvent ( $ev );
-					if ($ev->isCancelled ())
-						return;
-				}
-				$event->setCancelled ();
-				return;
-			}
 			return;
 		}
 		
@@ -1378,8 +1269,6 @@ class EventListener implements Listener {
 			return;
 		
 		if ($whiteWorld->isProtected ()) {
-			if ($whiteWorld->isAllowOption ( $event->getBlock ()->getId (), $event->getBlock ()->getDamage () ))
-				return;
 			switch (true) {
 				case $event instanceof BlockPlaceEvent :
 					$type = AreaModifyEvent::PLACE_WHITE;
@@ -1400,120 +1289,102 @@ class EventListener implements Listener {
 			$event->setCancelled ();
 			return;
 		}
-		if ($whiteWorld->isForbidOption ( $event->getBlock ()->getId (), $event->getBlock ()->getDamage () )) {
-			switch (true) {
-				case $event instanceof BlockPlaceEvent :
-					$type = AreaModifyEvent::PLACE_WHITE_FORBID;
-					break;
-				case $event instanceof BlockBreakEvent :
-					$type = AreaModifyEvent::BREAK_WHITE_FORBID;
-					break;
-				case $event instanceof SignChangeEvent :
-					$type = AreaModifyEvent::SIGN_CHANGE_WHITE_FORBID;
-					break;
-			}
-			if (isset ( $type )) {
-				$ev = new AreaModifyEvent ( $event->getPlayer (), $event->getBlock ()->getLevel ()->getFolderName (), null, $event->getBlock (), $type );
-				$this->plugin->getServer ()->getPluginManager ()->callEvent ( $ev );
-				if ($ev->isCancelled ())
-					return;
-			}
-			$event->setCancelled ();
-			return;
-		}
 	}
+
+
+
 	public function onPlayerInteractEvent(PlayerInteractEvent $event) {
 		if ($event->getAction () == PlayerInteractEvent::RIGHT_CLICK_BLOCK) {
-			if (isset ( $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+        $player = $event->getPlayer();
+        $lowerpname = strtolower($event->getPlayer()->getName());
+			if (isset($this->queue['manual'][$lowerpname])) {
 				$event->setCancelled ();
-				$startLevel = $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["startLevel"];
-				if ($startLevel !== $event->getPlayer ()->getLevel ()->getFolderName ()) {
-					$this->alert ( $event->getPlayer (), $this->get ( "manual-area-cant-cross-two-world" ) );
-					$this->message ( $event->getPlayer (), $this->get ( "you-can-stop-create-manual-area" ) );
+				$startLevel = $this->queue['manual'][$lowerpname]['startLevel'];
+				if ($startLevel !== $player->getLevel ()->getFolderName ()) {
+					$this->alert ( $player, $this->get ( "manual-area-cant-cross-two-world" ) );
+					$this->message ( $player, $this->get ( "you-can-stop-create-manual-area" ) );
 					return;
 				}
-				$startX = $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["startX"];
+				$startX = $this->queue ['manual'][$lowerpname]['startX'];
 				if ($startX === null) {
-					$this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["startX"] = $event->getBlock ()->getX ();
+					$this->queue['manual'][$lowerpname]['startX'] = $event->getBlock()->getX ();
 					$this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["startZ"] = $event->getBlock ()->getZ ();
-					$this->message ( $event->getPlayer (), $this->get ( "first-pos-choosed" ) );
+					$this->message ( $player, $this->get ( "first-pos-choosed" ) );
 					return;
 				}
-				$endX = $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["endX"];
+				$endX = $this->queue['manual'][$lowerpname]['endX'];
 				if ($endX === null) {
-					$this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["endX"] = $event->getBlock ()->getX ();
-					$this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["endZ"] = $event->getBlock ()->getZ ();
+					$this->queue['manual'][$lowerpname]['endX'] = $event->getBlock()->getX ();
+					$this->queue['manual'][$lowerpname]['endZ'] = $event->getBlock ()->getZ ();
 					
-					$pricePerBlock = $this->whiteWorldProvider->get ( $event->getPlayer ()->getLevel () )->getPricePerBlock ();
+					$pricePerBlock = $this->whiteWorldProvider->get($player->getLevel())->getPricePerBlock ();
 					
-					$startX = $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["startX"];
-					$endX = $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["endX"];
-					$startZ = $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["startZ"];
-					$endZ = $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ["endZ"];
+					$startX = $this->queue['manual'][$lowerpname]['startX'];
+					$endX = $this->queue['manual'][$lowerpname]['endX'];
+					$startZ = $this->queue['manual'][$lowerpname]['startZ'];
+					$endZ = $this->queue['manual'][$lowerpname]['endZ'];
 					
 					$xSize = $endX - $startX;
 					$zSize = $endZ - $startZ;
 					
-					$areaPrice = ($xSize * $zSize) * $pricePerBlock;
-					$this->message ( $event->getPlayer (), $this->get ( "second-pos-choosed" ) );
+					$areaPrice = (abs($xSize * $zSize)) * $pricePerBlock;
+					$this->message ( $player, $this->get ( 'second-pos-choosed' ) );
 					
-					($event->getPlayer ()->isOp ()) ? $isHome = false : $isHome = true;
-					$this->areaManager->manualCreate ( $event->getPlayer (), $startX, $endX, $startZ, $endZ, $isHome );
-					if (isset ( $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] ))
-						unset ( $this->queue ["manual"] [strtolower ( $event->getPlayer ()->getName () )] );
+					($player->isOp ()) ? $isHome = false : $isHome = true;
+					$this->areaManager->manualCreate ( $player, $startX, $endX, $startZ, $endZ, $isHome );
+					if (isset ( $this->queue['manual'][$lowerpname] ))
+						unset ( $this->queue['manual'][$lowerpname] );
 				}
-			}
-			if (isset ( $this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+			}else if (isset($this->queue['rentCreate'][$lowerpname])) {
 				$event->setCancelled ();
-				$startLevel = $this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["startLevel"];
-				if ($startLevel !== $event->getPlayer ()->getLevel ()->getFolderName ()) {
-					$this->alert ( $event->getPlayer (), $this->get ( "rent-area-cant-cross-two-world" ) );
+				$startLevel = $this->queue['rentCreate'][$lowerpname]['startLevel'];
+				if ($startLevel !== $player->getLevel ()->getFolderName ()) {
+					$this->alert ( $player, $this->get ( 'rent-area-cant-cross-two-world' ) );
 					return;
 				}
 				
 				$touched = $event->getBlock ();
-				$area = $this->areaProvider->getArea ( $event->getPlayer ()->getLevel ()->getName (), $touched->x, $touched->z );
+				$area = $this->areaProvider->getArea ( $player->getLevel ()->getName (), $touched->x, $touched->z, strtolower($event->getPlayer()->getName()) );
 				if (! $area instanceof AreaSection) {
-					$this->message ( $event->getPlayer (), $this->get ( "this-position-not-exist-area" ) );
+					$this->message ( $player, $this->get ( "this-position-not-exist-area" ) );
 					return;
 				}
 				
-				$areaId = $this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["areaId"];
+				$areaId = $this->queue['rentCreate'][$lowerpname]['areaId'];
 				if ($areaId != $area->getId ()) {
-					$this->message ( $event->getPlayer (), $this->get ( "this-position-some-other-area-exist" ) );
+					$this->message ( $player, $this->get ( 'this-position-some-other-area-exist' ) );
 					return;
 				}
 				
-				$startX = $this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["startX"];
+				$startX = $this->queue['rentCreate'][$lowerpname]['startX'];
 				if ($startX === null) {
-					$this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["startX"] = $event->getBlock ()->getX ();
-					$this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["startY"] = $event->getBlock ()->getY ();
-					$this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["startZ"] = $event->getBlock ()->getZ ();
-					$this->message ( $event->getPlayer (), $this->get ( "first-pos-choosed" ) );
-					$this->message ( $event->getPlayer (), $this->get ( "you-can-stop-create-manual-area" ) );
+					$this->queue['rentCreate'][$lowerpname] ['startX'] = $event->getBlock ()->getX ();
+					$this->queue['rentCreate'][$lowerpname]['startY'] = $event->getBlock ()->getY ();
+					$this->queue['rentCreate'][$lowerpname]['startZ'] = $event->getBlock ()->getZ ();
+					$this->message ( $player, $this->get ( 'first-pos-choosed' ) );
+					$this->message ( $player, $this->get ( 'you-can-stop-create-manual-area' ) );
 					return;
 				}
 				
-				$endX = $this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["endX"];
+				$endX = $this->queue['rentCreate'][$lowerpname]['endX'];
 				if ($endX === null) {
-					$this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["endX"] = $event->getBlock ()->getX ();
-					$this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["endY"] = $event->getBlock ()->getY ();
-					$this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["endZ"] = $event->getBlock ()->getZ ();
+					$this->queue['rentCreate'][$lowerpname]["endX"] = $event->getBlock ()->getX ();
+					$this->queue['rentCreate'][$lowerpname] ['endY'] = $event->getBlock ()->getY ();
+					$this->queue['rentCreate'][$lowerpname] ['endZ'] = $event->getBlock ()->getZ ();
 					
-					$rentPrice = $this->queue ["rentCreate"] [strtolower ( $event->getPlayer ()->getName () )] ["rentPrice"];
+					$rentPrice = $this->queue['rentCreate'] [$lowerpname]['rentPrice'];
 					
-					$this->message ( $event->getPlayer (), $this->get ( "second-pos-choosed" ) );
-					$this->message ( $event->getPlayer (), $this->get ( "do-you-want-create-area" ) . $rentPrice );
-					$this->message ( $event->getPlayer (), $this->get ( "if-you-want-to-create-try-again" ) );
-					$this->message ( $event->getPlayer (), $this->get ( "you-can-stop-create-manual-area" ) );
+					$this->message ( $player, $this->get ( 'second-pos-choosed' ) );
+					$this->message ( $player, $this->get ( 'do-you-want-create-area' ) . $rentPrice );
+					$this->message ( $player, $this->get ( 'if-you-want-to-create-try-again' ) );
+					$this->message ( $player, $this->get ( 'you-can-stop-create-manual-area' ) );
 					return;
 				}
-			}
-			if (isset ( $this->queue ["areaSizeUp"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+			}else if (isset($this->queue['areaSizeUp'][$lowerpname])) {
 				$event->setCancelled ();
-				$sizeUpData = $this->queue ["areaSizeUp"] [strtolower ( $event->getPlayer ()->getName () )];
-				if (! $sizeUpData ["isTouched"]) {
-					$area = $this->areaProvider->getAreaToId ( $sizeUpData ["startLevel"], $sizeUpData ["id"] );
+				$sizeUpData = $this->queue['areaSizeUp'][$lowerpname];
+				if (! $sizeUpData['isTouched']) {
+					$area = $this->areaProvider->getAreaToId ( $sizeUpData ['startLevel'], $sizeUpData ['id'] );
 					
 					$startX = $area->get ( "startX" );
 					$endX = $area->get ( "endX" );
@@ -1540,23 +1411,23 @@ class EventListener implements Listener {
 					}
 					
 					if ($rstartX == 0 and $rendX == 0 and $rstartZ == 0 and $rendZ == 0) {
-						$this->alert ( $event->getPlayer (), $this->get ( "you-need-touch-out-side" ) );
-						$this->alert ( $event->getPlayer (), $this->get ( "you-can-stop-create-manual-area" ) );
+						$this->alert ( $player, $this->get ( 'you-need-touch-out-side' ) );
+						$this->alert ( $player, $this->get ( 'you-can-stop-create-manual-area' ) );
 						return;
 					}
 					
-					$this->queue ["areaSizeUp"] [strtolower ( $event->getPlayer ()->getName () )] ["startX"] = $rstartX;
-					$this->queue ["areaSizeUp"] [strtolower ( $event->getPlayer ()->getName () )] ["endX"] = $rendX;
-					$this->queue ["areaSizeUp"] [strtolower ( $event->getPlayer ()->getName () )] ["startZ"] = $rstartZ;
-					$this->queue ["areaSizeUp"] [strtolower ( $event->getPlayer ()->getName () )] ["endZ"] = $rendZ;
-					$this->queue ["areaSizeUp"] [strtolower ( $event->getPlayer ()->getName () )] ["isTouched"] = true;
+					$this->queue ['areaSizeUp'][$lowerpname]['startX'] = $rstartX;
+					$this->queue ['areaSizeUp'][$lowerpname]['endX'] = $rendX;
+					$this->queue ['areaSizeUp'][$lowerpname]['startZ'] = $rstartZ;
+					$this->queue ['areaSizeUp'][$lowerpname]['endZ'] = $rendZ;
+					$this->queue ['areaSizeUp'][$lowerpname]['isTouched'] = true;
 					
 					$resizePrice = 0;
 					$xSize = $endX - $startX;
 					$zSize = $endZ - $startZ;
-					$whiteWorld = $this->whiteWorldProvider->get ( $sizeUpData ["startLevel"] );
+					$whiteWorld = $this->whiteWorldProvider->get ( $sizeUpData ['startLevel'] );
 					
-					if (! $event->getPlayer ()->isOp ()) {
+					if (! $player->isOp ()) {
 						if ($rstartX != 0)
 							$resizePrice += (abs ( $rstartX * $zSize ) * $whiteWorld->getPricePerBlock ());
 						if ($rendX != 0)
@@ -1566,19 +1437,18 @@ class EventListener implements Listener {
 						if ($rendZ != 0)
 							$resizePrice += (abs ( $rendZ * $xSize ) * $whiteWorld->getPricePerBlock ());
 					}
-					$this->queue ["areaSizeUp"] [strtolower ( $event->getPlayer ()->getName () )] ["resizePrice"] = $resizePrice;
+					$this->queue ['areaSizeUp'][$lowerpname]['resizePrice'] = $resizePrice;
 					
-					$this->message ( $event->getPlayer (), $this->get ( "do-you-want-size-up" ) . $resizePrice );
-					$this->message ( $event->getPlayer (), $this->get ( "if-you-want-to-size-up-please-command" ) );
-					$this->message ( $event->getPlayer (), $this->get ( "you-can-stop-create-manual-area" ) );
+					$this->message ( $player, $this->get ( 'do-you-want-size-up' ) . $resizePrice );
+					$this->message ( $player, $this->get ( 'if-you-want-to-size-up-please-command' ) );
+					$this->message ( $player, $this->get ( 'you-can-stop-create-manual-area' ) );
 					return;
 				}
-			}
-			if (isset ( $this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] )) {
+			}else if (isset ( $this->queue['areaSizeDown'] [$lowerpname] )) {
 				$event->setCancelled ();
-				$sizeDownData = $this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )];
-				if (! $sizeDownData ["isTouched"]) {
-					$area = $this->areaProvider->getAreaToId ( $sizeDownData ["startLevel"], $sizeDownData ["id"] );
+				$sizeDownData = $this->queue ['areaSizeDown'] [$lowerpname];
+				if (! $sizeDownData ['isTouched']) {
+					$area = $this->areaProvider->getAreaToId ( $sizeDownData ['startLevel'], $sizeDownData ["id"] );
 					
 					$startX = $area->get ( "startX" );
 					$endX = $area->get ( "endX" );
@@ -1603,51 +1473,56 @@ class EventListener implements Listener {
 						$rendZ = $touchZ - $endZ;
 					
 					if ($rstartX >= 0 or $rendX >= 0 or $rstartZ >= 0 or $rendZ >= 0) {
-						$this->alert ( $event->getPlayer (), $this->get ( "you-need-touch-in-side" ) );
-						$this->alert ( $event->getPlayer (), $this->get ( "you-can-stop-create-manual-area" ) );
+						$this->alert ( $player, $this->get ( 'you-need-touch-in-side' ) );
+						$this->alert ( $player, $this->get ( 'you-can-stop-create-manual-area' ) );
 						return;
 					}
 					
 					if ($rstartX > $rendX) {
 						if ($rstartZ > $rendZ) {
 							if ($rstartX > $rstartZ) {
-								$this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] ["startX"] = $rstartX;
+								$this->queue ['areaSizeDown'] [$lowerpname] ['startX'] = $rstartX;
 							} else {
-								$this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] ["startZ"] = $rstartZ;
+								$this->queue ['areaSizeDown'] [$lowerpname] ['startZ'] = $rstartZ;
 							}
 						} else { // $rstartZ < $rendZ
 							if ($rstartX > $rendZ) {
-								$this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] ["startX"] = $rstartX;
+								$this->queue ['areaSizeDown'] [$lowerpname] ['startX'] = $rstartX;
 							} else {
-								$this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] ["endZ"] = $rendZ;
+								$this->queue ['areaSizeDown'] [$lowerpname] ['endZ'] = $rendZ;
 							}
 						}
 					} else { // $rstartX < $rendX
 						if ($rstartZ > $rendZ) {
 							if ($rstartX > $rstartZ) {
-								$this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] ["endX"] = $rendX;
+								$this->queue ['areaSizeDown'] [$lowerpname] ['endX'] = $rendX;
 							} else {
-								$this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] ["startZ"] = $rstartZ;
+								$this->queue ['areaSizeDown'] [$lowerpname] ['startZ'] = $rstartZ;
 							}
 						} else { // $rstartZ < $rendZ
 							if ($rstartX > $rendZ) {
-								$this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] ["endX"] = $rendX;
+								$this->queue ['areaSizeDown'] [$lowerpname] ['endX'] = $rendX;
 							} else {
-								$this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] ["endZ"] = $rendZ;
+								$this->queue ['areaSizeDown'] [$lowerpname] ['endZ'] = $rendZ;
 							}
 						}
 					}
-					$this->queue ["areaSizeDown"] [strtolower ( $event->getPlayer ()->getName () )] ["isTouched"] = true;
+					$this->queue ['areaSizeDown'] [$lowerpname] ['isTouched'] = true;
 					
-					$this->message ( $event->getPlayer (), $this->get ( "do-you-want-size-down" ) );
-					$this->message ( $event->getPlayer (), $this->get ( "if-you-want-to-size-down-please-command" ) );
-					$this->message ( $event->getPlayer (), $this->get ( "you-can-stop-create-manual-area" ) );
+					$this->message ( $player, $this->get ( 'do-you-want-size-down' ) );
+					$this->message ( $player, $this->get ( 'if-you-want-to-size-down-please-command' ) );
+					$this->message ( $player, $this->get ( 'you-can-stop-create-manual-area' ) );
 					return;
 				}
 			}
-			$rent = $this->rentProvider->getRent ( $event->getBlock ()->getLevel (), $event->getBlock ()->x, $event->getBlock ()->y, $event->getBlock ()->z );
-			$area = $this->areaProvider->getArea ( $event->getBlock ()->getLevel (), $event->getBlock ()->x, $event->getBlock ()->z );
-			if ($rent instanceof RentSection and $area instanceof AreaSection) {
+        $block = $event->getBlock();
+        $level = $block->getLevel();
+        $posX = $block->x;
+        $posY = $block->y;
+        $posZ = $block->z;
+			$rent = $this->rentProvider->getRent($level, $posX, $posY, $posZ );
+			$area = $this->areaProvider->getArea($level, $posX, $posZ, strtolower($event->getPlayer()->getName()) );
+			if ($rent instanceof RentSection && $area instanceof AreaSection) {
 				$buySignPos = $rent->getBuySignPos ();
 				$buySignPosString = "{$buySignPos->x}:{$buySignPos->y}:{$buySignPos->z}";
 				
@@ -1656,42 +1531,42 @@ class EventListener implements Listener {
 				
 				if ($buySignPosString == $blockPosString) {
 					$event->setCancelled ();
-					if ($area->getOwner () == strtolower ( $event->getPlayer ()->getName () )) {
-						$this->message ( $event->getPlayer (), $this->get ( "cant-owner-self-buying-rent-area" ) );
+					if ($area->getOwner () == $lowerpname) {
+						$this->message ( $player, $this->get ( "cant-owner-self-buying-rent-area" ) );
 						return;
 					}
 					if (! $rent->isCanBuy ()) {
-						if ($rent->getOwner () == strtolower ( $event->getPlayer ()->getName () )) {
-							$this->message ( $event->getPlayer (), $this->get ( "this-rent-area-already-sold-you" ) );
+						if ($rent->getOwner() == $lowerpname){
+							$this->message ( $player, $this->get ( "this-rent-area-already-sold-you" ) );
 						} else {
-							$this->message ( $event->getPlayer (), $this->get ( "this-rent-area-already-sold" ) );
+							$this->message ( $player, $this->get ( "this-rent-area-already-sold" ) );
 						}
-						$this->message ( $event->getPlayer (), $this->get ( "this-rent-is-already-owner-exist" ) . $rent->getOwner () );
+						$this->message ( $player, $this->get ( 'this-rent-is-already-owner-exist' ) . $rent->getOwner () );
 						return;
 					}
-					if (! isset ( $this->queue ["rentBuy"] [strtolower ( $event->getPlayer ()->getName () )] )) {
-						$this->queue ["rentBuy"] [strtolower ( $event->getPlayer ()->getName () )] = [ 
+					if (! isset ( $this->queue ['rentBuy'] [$lowerpname] )) {
+						$this->queue ['rentBuy'] [$lowerpname] = [ 
 								"time" => $this->makeTimestamp () 
 						];
-						$this->message ( $event->getPlayer (), $this->get ( "if-you-want-to-buying-this-rent-touch-again" ) );
-						$this->message ( $event->getPlayer (), $this->get ( "rent-hour-per-price" ) . $rent->getPrice () );
+						$this->message ( $player, $this->get ( 'if-you-want-to-buying-this-rent-touch-again' ) );
+						$this->message ( $player, $this->get ( 'rent-hour-per-price' ) . $rent->getPrice () );
 					} else {
-						$before = $this->queue ["rentBuy"] [strtolower ( $event->getPlayer ()->getName () )] ["time"];
+						$before = $this->queue ['rentBuy'] [$lowerpname] ['time'];
 						$after = $this->makeTimestamp ();
 						$timeout = intval ( $after - $before );
 						
 						if ($timeout > 6) {
-							if (isset ( $this->queue ["rentBuy"] [strtolower ( $event->getPlayer ()->getName () )] ))
-								unset ( $this->queue ["rentBuy"] [strtolower ( $event->getPlayer ()->getName () )] );
-							$this->message ( $event->getPlayer (), $this->get ( "rent-buying-time-over" ) );
+							if (isset ( $this->queue ['rentBuy'] [$lowerpname] ))
+								unset ( $this->queue ['rentBuy'] [$lowerpname] );
+							$this->message ( $player, $this->get ( 'rent-buying-time-over' ) );
 							return;
 						}
 						
-						$rent->buy ( $event->getPlayer () );
+						$rent->buy ( $player );
 					}
 				}
 			}
-			if ($event->getBlock ()->getID () == Block::SIGN_POST) {
+			if ($block->getID () == Block::SIGN_POST) {
 				$sign = $event->getPlayer ()->getLevel ()->getTile ( $event->getBlock () );
 				if (! $sign instanceof Sign)
 					return;
@@ -1713,7 +1588,7 @@ class EventListener implements Listener {
 				$xSize = ($size [0] - 1);
 				$zSize = ($size [1] - 1);
 				
-				switch ($sign->getBlock ()->getDamage ()) {
+				switch($sign->getBlock()->getDamage ()){
 					case 0 : // 63:0 x+ z- XxZ
 						$startX = ($event->getBlock ()->x + 1);
 						$startZ = ($event->getBlock ()->z - 1);
@@ -1763,7 +1638,6 @@ class EventListener implements Listener {
 				}
 				return;
 			}
-			if (! $event->getItem ()->canBeActivated () and ! $event->getBlock ()->canBeActivated ()) {
 				if ($event->getPlayer ()->isOp ())
 					return;
 				if ($event->getBlock ()->getId () == Block::SIGN_POST)
@@ -1774,137 +1648,73 @@ class EventListener implements Listener {
 					return;
 				if ($event->getBlock ()->getId () == Block::FURNACE)
 					return;
-			}
 			$this->onBlockChangeEvent ( $event );
 		}
 	}
+
+
 	public function onPlayerQuitEvent(PlayerQuitEvent $event) {
 		$userName = strtolower ( $event->getPlayer ()->getName () );
 		if (isset ( $this->queue ["movePos"] [$userName] ))
 			unset ( $this->queue ["movePos"] [$userName] );
 	}
-	public function onPlayerMoveEvent(PlayerMoveEvent $event) {
-		$userName = strtolower ( $event->getPlayer ()->getName () );
-		if (! isset ( $this->queue ["movePos"] [$userName] )) {
-			$this->queue ["movePos"] [$userName] = [ 
-					"x" => ( int ) round ( $event->getPlayer ()->x ),
-					"z" => ( int ) round ( $event->getPlayer ()->z ),
-					"areaId" => null,
-					"rentId" => null 
-			];
-			return;
-		}
-		$diff = abs ( ( int ) round ( $event->getPlayer ()->x - $this->queue ["movePos"] [$userName] ["x"] ) );
-		$diff += abs ( ( int ) round ( $event->getPlayer ()->z - $this->queue ["movePos"] [$userName] ["z"] ) );
-		if ($diff > 4) {
-			$this->queue ["movePos"] [$userName] ["x"] = ( int ) round ( $event->getPlayer ()->x );
-			$this->queue ["movePos"] [$userName] ["z"] = ( int ) round ( $event->getPlayer ()->z );
-			
-			$area = $this->areaProvider->getArea ( $event->getPlayer ()->getLevel (), $event->getPlayer ()->x, $event->getPlayer ()->z );
-			if ($area instanceof AreaSection) {
-				if (! $event->getPlayer ()->isOp ())
-					if ($area->isAccessDeny () and ! $area->isResident ( $event->getPlayer ()->getName () )) {
-						$x = $area->get ( "startX" ) - 2;
-						$z = $area->get ( "startZ" ) - 2;
-						$y = $event->getPlayer ()->getLevel ()->getHighestBlockAt ( $x, $z );
-						$event->getPlayer ()->teleport ( new Vector3 ( $x, $y, $z ) );
-						$this->alert ( $event->getPlayer (), $this->get ( "this-area-is-only-can-access-resident" ) );
-					}
-				if ($this->queue ["movePos"] [$userName] ["areaId"] != $area->getId ()) {
-					$welcomeMsg = $area->getWelcome ();
-					if ($area->isHome ()) {
-						if ($area->isOwner ( $userName )) {
-							$this->message ( $event->getPlayer (), $this->get ( "welcome-area-sir" ) );
-							if ($welcomeMsg == null)
-								$this->message ( $event->getPlayer (), $this->get ( "please-set-to-welcome-msg" ) );
-						} else {
-							if ($area->getOwner () != "")
-								$this->message ( $event->getPlayer (), $this->get ( "here-is" ) . $area->getOwner () . $this->get ( "his-land" ) );
-							if ($welcomeMsg != null)
-								$this->message ( $event->getPlayer (), $welcomeMsg, $this->get ( "welcome-prefix" ) );
-						}
-					}
-					if (! $area->isHome () and $event->getPlayer ()->isOp ()) {
-						$this->message ( $event->getPlayer (), $this->get ( "welcome-op-area-sir" ) );
-						if ($welcomeMsg == null)
-							$this->message ( $event->getPlayer (), $this->get ( "please-set-to-welcome-msg" ) );
-					}
-					if ($area->isCanBuy ())
-						$this->message ( $event->getPlayer (), $this->get ( "you-can-buy-here" ) . $area->getPrice () . " " . $this->get ( "show-buy-command" ) );
-					$this->queue ["movePos"] [$userName] ["areaId"] = $area->getId ();
-				}
-			}
-			$rent = $this->rentProvider->getRent ( $event->getPlayer ()->getLevel (), $event->getPlayer ()->x, $event->getPlayer ()->y, $event->getPlayer ()->z );
-			if ($rent instanceof RentSection) {
-				if ($this->queue ["movePos"] [$userName] ["rentId"] != $rent->getRentId ()) {
-					$welcomeMsg = $rent->getWelcome ();
-					if ($welcomeMsg != null)
-						$this->message ( $event->getPlayer (), $welcomeMsg, $this->get ( "welcome-prefix" ) );
-					
-					if ($rent->isOwner ( $userName )) {
-						$this->message ( $event->getPlayer (), $this->get ( "welcome-rent-area-sir" ) );
-						if ($welcomeMsg == null)
-							$this->message ( $event->getPlayer (), $this->get ( "please-set-to-welcome-msg" ) );
-					}
-					$this->queue ["movePos"] [$userName] ["rentId"] = $rent->getRentId ();
-				}
-			}
-		}
-	}
+
+
+
 	public function onEntityDamageEvent(EntityDamageEvent $event) {
-		if (! $event instanceof EntityDamageByEntityEvent)
+		if (! $event instanceof EntityDamageByEntityEvent){
 			return;
-		
-		if (! $event->getDamager () instanceof Player)
+     } else if (! $event->getDamager () instanceof Player) {
 			return;
-		
-		$player = $event->getEntity ();
-		if (! $player instanceof Player)
+     } else if (!$event->getEntity() instanceof Player){
 			return;
-		
-		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
+     }
+		$player = $event->getEntity();
+		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z, strtolower($player->getName()));
 		
 		if ($area instanceof AreaSection) {
-			if (! $area->isPvpAllow ()) {
-				$event->setCancelled ();
-			}
+			if ($area->isPvpAllow())
+          return;
 		} else {
 			$whiteWorld = $this->whiteWorldProvider->get ( $player->getLevel () );
-			if ($whiteWorld instanceof WhiteWorldData) {
-				if (! $whiteWorld->isPvpAllow ())
-					$event->setCancelled ();
-			}
+			if ($whiteWorld instanceof WhiteWorldData)
+				if ($whiteWorld->isPvpAllow())
+             return;
 		}
+		$event->setCancelled();
 	}
+
+
+
 	public function onEntityCombustEvent(EntityCombustEvent $event) {
-		if (! $event instanceof EntityCombustByBlockEvent)
+		if (! $event instanceof EntityCombustByBlockEvent){
+			return;
+		}else if (! $event->getCombuster () instanceof Fire){
 			return;
 		
-		if (! $event->getCombuster () instanceof Fire)
+} else if (!$event->getEntity() instanceof Player) {
 			return;
-		
-		$player = $event->getEntity ();
-		if (! $player instanceof Player)
-			return;
-		
-		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
+     }
+		$player = $event->getEntity();
+		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z, strtolower($player->getName()) );
 		
 		if ($area instanceof AreaSection) {
-			if (! $area->isPvpAllow ()) {
-				$event->setCancelled ();
-			}
+			if ($area->isPvpAllow())
+		     return;
 		} else {
 			$whiteWorld = $this->whiteWorldProvider->get ( $player->getLevel () );
-			if ($whiteWorld instanceof WhiteWorldData) {
-				if (! $whiteWorld->isPvpAllow ())
-					$event->setCancelled ();
-			}
+			if ($whiteWorld instanceof WhiteWorldData)
+				if ($whiteWorld->isPvpAllow ())
+					return;
 		}
+     $event->setCancelled();
 	}
+
+
 	public function onPlayerDeathEvent(PlayerDeathEvent $event) {
 		$player = $event->getEntity ();
 		
-		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z );
+		$area = $this->areaProvider->getArea ( $player->getLevel (), $player->x, $player->z, strtolower($player->getName()) );
 		if ($area instanceof AreaSection) {
 			if ($area->isInvenSave ())
 				$event->setKeepInventory ( true );
@@ -1917,122 +1727,7 @@ class EventListener implements Listener {
 			return;
 		}
 	}
-	public function onBlockUpdateEvent(BlockUpdateEvent $event) {
-		if ($event->getBlock ()->getId () != 8 and $event->getBlock ()->getId () != 10)
-			return;
-		$updatedArea = $this->areaProvider->getArea ( $event->getBlock ()->getLevel (), $event->getBlock ()->x, $event->getBlock ()->z );
-		if (! $updatedArea instanceof AreaSection)
-			return;
-		$sides = [ 
-				Vector3::SIDE_EAST,
-				Vector3::SIDE_WEST,
-				Vector3::SIDE_NORTH,
-				Vector3::SIDE_SOUTH 
-		];
-		foreach ( $sides as $side ) {
-			$block = $event->getBlock ()->getSide ( $side );
-			$searchArea = $this->areaProvider->getArea ( $block->getLevel (), $block->x, $block->z );
-			if ($searchArea instanceof AreaSection) {
-				// overflow (area->other area) -> prevent
-				// (overflow (home->other home) -> prevent)
-				// (overflow (op area->other home) -> prevent)
-				// (overflow (home->other op area) -> prevent)
-				if ($searchArea->getId () != $updatedArea->getId ()) {
-					$event->setCancelled ();
-					$event->getBlock ()->getLevel ()->setBlock ( $block, $block );
-					if (isset ( $this->waterLists [$updatedArea->getId ()] )) {
-						foreach ( $this->waterLists [$updatedArea->getId ()] as $key => $value ) {
-							$pos = explode ( ":", $key );
-							$pos = new Vector3 ( $pos [0], $pos [1], $pos [2] );
-							if ($block->getLevel ()->getBlockIdAt ( $pos->x, $pos->y, $pos->z ) == 8 or $block->getLevel ()->getBlockIdAt ( $pos->x, $pos->y, $pos->z ) == 10)
-								$block->getLevel ()->setBlock ( $pos, Block::get ( Block::AIR ) );
-						}
-						unset ( $this->waterLists [$updatedArea->getId ()] );
-					}
-					break;
-				}
-			} else {
-				// overflow (none->home) -> prevent
-				// (it is same overflow (home->none) prevent)
-				$event->setCancelled ();
-				$this->waterAbsorption ( $event->getBlock () );
-				if (isset ( $this->waterLists [$updatedArea->getId ()] )) {
-					foreach ( $this->waterLists [$updatedArea->getId ()] as $key => $value ) {
-						$pos = explode ( ":", $key );
-						$pos = new Vector3 ( $pos [0], $pos [1], $pos [2] );
-						if ($block->getLevel ()->getBlockIdAt ( $pos->x, $pos->y, $pos->z ) == 8 or $block->getLevel ()->getBlockIdAt ( $pos->x, $pos->y, $pos->z ) == 10)
-							$block->getLevel ()->setBlock ( $pos, Block::get ( Block::AIR ) );
-					}
-					unset ( $this->waterLists [$updatedArea->getId ()] );
-				}
-			}
-		}
-		if (! $event->isCancelled ()) {
-			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y + 1, $block->z ) == 8)
-				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . ($block->y + 1) . ":" . $block->z] = true;
-			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y - 1, $block->z ) == 8)
-				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . ($block->y - 1) . ":" . $block->z] = true;
-			if ($block->getLevel ()->getBlockIdAt ( $block->x + 1, $block->y, $block->z ) == 8)
-				$this->waterLists [$updatedArea->getId ()] [($block->x + 1) . ":" . $block->y . ":" . $block->z] = true;
-			if ($block->getLevel ()->getBlockIdAt ( $block->x - 1, $block->y, $block->z ) == 8)
-				$this->waterLists [$updatedArea->getId ()] [($block->x - 1) . ":" . $block->y . ":" . $block->z] = true;
-			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y, $block->z + 1 ) == 8)
-				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . $block->y . ":" . ($block->z + 1)] = true;
-			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y, $block->z - 1 ) == 8)
-				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . $block->y . ":" . ($block->z - 1)] = true;
-			if ($block->getLevel ()->getBlockIdAt ( $block->x, $block->y, $block->z ) == 8)
-				$this->waterLists [$updatedArea->getId ()] [$block->x . ":" . $block->y . ":" . $block->z] = true;
-		}
-	}
-	public function waterAbsorption(Block $block) {
-		$result = $this->checkWaterAbsorption ( $block, [ 
-				"nestingDepth" => 0 
-		] );
-		$nestingDepth = 0;
-		foreach ( $result as $pos => $bool ) {
-			$nestingDepth ++;
-			if ($nestingDepth >= 20)
-				break;
-			$pos = explode ( ":", $pos );
-			if (isset ( $pos [2] ))
-				$block->getLevel ()->setBlock ( new Vector3 ( $pos [0], $pos [1], $pos [2] ), Block::get ( Block::AIR ) );
-		}
-	}
-	public function checkWaterAbsorption(Block $block, $data) {
-		$data ["nestingDepth"] ++;
-		if ($data ["nestingDepth"] >= 20)
-			return $data;
-		$sides = [ 
-				Vector3::SIDE_EAST,
-				Vector3::SIDE_WEST,
-				Vector3::SIDE_NORTH,
-				Vector3::SIDE_SOUTH,
-				Vector3::SIDE_UP,
-				Vector3::SIDE_DOWN 
-		];
-		$blockPos = "{$block->x}:{$block->y}:{$block->z}";
-		if (! isset ( $data [$blockPos] ))
-			$data [$blockPos] = true;
-		foreach ( $sides as $side ) {
-			if ($data ["nestingDepth"] >= 20)
-				break;
-			$sideBlock = $block->getSide ( $side );
-			$sideBlockPos = "{$sideBlock->x}:{$sideBlock->y}:{$sideBlock->z}";
-			if (isset ( $data [$sideBlockPos] ))
-				continue;
-			$id = $sideBlock->getId ();
-			if ($id == 8 or $id == 9 or $id == 10 or $id == 11) {
-				$data [$sideBlockPos] = true;
-				$returns = $this->checkWaterAbsorption ( $sideBlock, $data );
-				if ($returns ["nestingDepth"] >= 20)
-					break;
-				foreach ( $returns as $returnPos => $bool )
-					if (! isset ( $data [$returnPos] ))
-						$data [$returnPos] = true;
-			}
-		}
-		return $data;
-	}
+
 	public function get($var) {
 		return $this->plugin->get ( $var );
 	}
@@ -2041,6 +1736,9 @@ class EventListener implements Listener {
 	}
 	public function alert(CommandSender $player, $text = "", $mark = null) {
 		$this->plugin->alert ( $player, $text, $mark );
+	}
+	public function tip(CommandSender $player, $text = "", $mark = null) {
+		$this->plugin->tip ( $player, $text, $mark );
 	}
 	public function makeTimestamp($date = null) {
 		if ($date === null)
