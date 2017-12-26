@@ -3,17 +3,16 @@
 namespace ifteam\SimpleArea\database\minefarm;
 
 use ifteam\SimpleArea\SimpleArea;
-use pocketmine\level\generator\Generator;
-use pocketmine\level\format\FullChunk;
-use pocketmine\level\generator\object\Tree;
-use pocketmine\Server;
-use ifteam\SimpleArea\database\area\AreaProvider;
-use ifteam\SimpleArea\database\world\WhiteWorldProvider;
 use ifteam\SimpleArea\database\area\AreaLoader;
+use ifteam\SimpleArea\database\area\AreaProvider;
 use ifteam\SimpleArea\database\user\UserProperties;
-use pocketmine\block\Block;
+use ifteam\SimpleArea\database\world\WhiteWorldProvider;
 use pocketmine\Player;
+use pocketmine\Server;
+use pocketmine\block\Block;
 use pocketmine\block\Sapling;
+use pocketmine\level\generator\Generator;
+use pocketmine\level\generator\object\Tree;
 use pocketmine\utils\Random;
 
 class MineFarmLoader {

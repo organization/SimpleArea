@@ -160,7 +160,7 @@ class EventListener implements Listener {
 
 
 
-	public function onCommand(CommandSender $player, Command $command,string $label, Array $args): bool {
+	public function onCommand(CommandSender $player, Command $command, string $label, Array $args): bool {
 		if (! $player instanceof Player) {
 			switch (strtolower ( $command )) {
 				case $this->get ( "commands-area" ) :

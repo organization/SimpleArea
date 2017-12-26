@@ -79,7 +79,7 @@ class SimpleArea extends PluginBase implements Listener {
 		$this->registerCommand ( $this->get ( "commands-area" ), "simplearea.area", $this->get ( "commands-area-desc" ) );
 		$this->registerCommand ( $this->get ( "commands-rent" ), "simplearea.rent", $this->get ( "commands-rent-desc" ) );
 		$this->registerCommand ( $this->get ( "commands-whiteworld" ), "simplearea.whiteworld", $this->get ( "commands-whiteworld-desc" ) );
-		$this->registerCommand ( $this->get ( "commands-minefarm" ), "simplearea.minefarm", $this->get ( "commands-minefarm-desc" ) );
+		$this->registerCommand ( $this->get ( "commands-minefarm" ), "simplearea.minefarm;simplearea.minefarm.start", $this->get ( "commands-minefarm-desc" ) );
 		$this->registerCommand ( $this->get ( "commands-areatax" ), "simplearea.areatax", $this->get ( "commands-areatax-desc" ) );
 		
 		if (file_exists ( $this->getServer ()->getDataPath () . "worlds/island/level.dat" )) {
@@ -151,11 +151,11 @@ class SimpleArea extends PluginBase implements Listener {
 
 
 	public function messagesUpdate() {
-		if (! isset ( $this->messages ["default-language"] ["m_version"] )) {
+		if (! isset ( $this->messages ["m_version"] )) {
 			$this->saveResource ( "messages.yml", true );
 			$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 		} else {
-			if ($this->messages ["default-language"] ["m_version"] < $this->m_version) {
+			if ($this->messages ["m_version"] < $this->m_version) {
 				$this->saveResource ( "messages.yml", true );
 				$this->messages = (new Config ( $this->getDataFolder () . "messages.yml", Config::YAML ))->getAll ();
 			}

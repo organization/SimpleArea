@@ -3,6 +3,7 @@
 namespace ifteam\SimpleArea\api;
 
 use ifteam\SimpleArea\SimpleArea;
+use ifteam\SimpleArea\database\world\WhiteWorldData;
 use ifteam\SimpleArea\database\world\WhiteWorldProvider;
 use ifteam\SimpleArea\database\area\AreaProvider;
 use ifteam\SimpleArea\task\HourTaxCheckTask;
