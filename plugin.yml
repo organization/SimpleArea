@@ -4,7 +4,7 @@ main: ifteam\SimpleArea\SimpleArea
 version: 2.0.0.31
 author: ifteam
 api:
-- 4.0.0
+  - 4.0.0
 permissions:
   simplearea.area:
     description: Allows to control area

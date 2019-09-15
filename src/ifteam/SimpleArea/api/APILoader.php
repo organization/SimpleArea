@@ -3,11 +3,11 @@
 namespace ifteam\SimpleArea\api;
 
 class APILoader {
-    public $economyAPI;
+	public $economyAPI;
 
-    public function __construct() {
-        $this->economyAPI = new API_EconomyAPI ();
-    }
+	public function __construct() {
+		$this->economyAPI = new API_EconomyAPI ();
+	}
 }
 
 ?>
