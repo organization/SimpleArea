@@ -2,61 +2,71 @@
 
 namespace ifteam\SimpleArea\event;
 
-use pocketmine\event\Event;
-use pocketmine\event\Cancellable;
 use ifteam\SimpleArea\database\area\AreaProvider;
 use ifteam\SimpleArea\database\area\AreaSection;
-use ifteam\SimpleArea\database\world\WhiteWorldProvider;
 use ifteam\SimpleArea\database\world\WhiteWorldData;
+use ifteam\SimpleArea\database\world\WhiteWorldProvider;
+use pocketmine\event\Cancellable;
+use pocketmine\event\CancellableTrait;
+use pocketmine\event\Event;
 
 class AreaAddEvent extends Event implements Cancellable {
-	public static $handlerList = null;
-	public static $eventPool = [ ];
-	public static $nextEvent = 0;
-	protected $player, $level, $id;
-	/**
-	 * __construct()
-	 *
-	 * @param string $player        	
-	 * @param string $level        	
-	 * @param string $id        	
-	 */
-	public function __construct($player, $level, $id) {
-		$this->player = $player;
-		$this->level = $level;
-		$this->id = $id;
-	}
-	/**
-	 * getPlayer()
-	 *
-	 * @return string
-	 */
-	public function getPlayer() {
-		return $this->player;
-	}
-	/**
-	 * getAreaId()
-	 *
-	 * @return string $id
-	 */
-	public function getAreaId() {
-		return $this->id;
-	}
-	/**
-	 * getAreaData()
-	 *
-	 * @return AreaSection $area
-	 */
-	public function getAreaData() {
-		return AreaProvider::getInstance ()->getAreaToId ( $this->level, $this->id );
-	}
-	/**
-	 * getWhtieWorldData()
-	 *
-	 * @return WhiteWorldData $area
-	 */
-	public function getWhtieWorldData() {
-		return WhiteWorldProvider::getInstance ()->get ( $this->level );
-	}
+
+    use CancellableTrait;
+
+    public static $handlerList = null;
+    public static $eventPool = [];
+    public static $nextEvent = 0;
+    protected $player, $world, $id;
+
+    /**
+     * __construct()
+     *
+     * @param string $player
+     * @param string $world
+     * @param string $id
+     */
+    public function __construct($player, $world, $id) {
+        $this->player = $player;
+        $this->world = $world;
+        $this->id = $id;
+    }
+
+    /**
+     * getPlayer()
+     *
+     * @return string
+     */
+    public function getPlayer() {
+        return $this->player;
+    }
+
+    /**
+     * getAreaId()
+     *
+     * @return string $id
+     */
+    public function getAreaId() {
+        return $this->id;
+    }
+
+    /**
+     * getAreaData()
+     *
+     * @return AreaSection $area
+     */
+    public function getAreaData() {
+        return AreaProvider::getInstance()->getAreaToId($this->world, $this->id);
+    }
+
+    /**
+     * getWhtieWorldData()
+     *
+     * @return WhiteWorldData $area
+     */
+    public function getWhtieWorldData() {
+        return WhiteWorldProvider::getInstance()->get($this->world);
+    }
 }
+
 ?>

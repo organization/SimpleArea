@@ -1,8 +1,10 @@
+---
 name: SimpleArea
 main: ifteam\SimpleArea\SimpleArea
-version: 2.0.0.30
+version: 2.0.0.31
 author: ifteam
-api: [3.0.0-ALPHA6, 3.0.0-ALPHA7, 3.0.0-ALPHA8, 3.0.0-ALPHA9, 3.0.0-ALPHA10]
+api:
+- 4.0.0
 permissions:
   simplearea.area:
     description: Allows to control area
@@ -131,3 +133,4 @@ permissions:
   simplearea.areatax:
     description: Allows to control areatax
     default: OP
+...
