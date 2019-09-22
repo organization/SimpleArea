@@ -81,7 +81,7 @@ class RentProvider {
 		$event = new RentAddEvent ($rent->getOwner(), $rent->getWorld(), $rent->getRentId());
 		$event->call();
 		if ($event->isCancelled()) {
-			$this->deleteRent($rent->getWorld(), $rent->getId());
+			$this->deleteRent($rent->getWorld(), $rent->getRentId());
 			return null;
 		}
 
@@ -133,9 +133,9 @@ class RentProvider {
 	 * Get All rents info of the world
 	 *
 	 * @param string $world
-	 * @return NULL|Array
+	 * @return NULL|array
 	 */
-	public function getRentsInfo($world) {
+	public function getRentsInfo($world): ?array {
 		if ($world instanceof World)
 			$world = $world->getFolderName();
 		return $this->rentLoader->getRentsInfo($world);
@@ -150,7 +150,7 @@ class RentProvider {
 	 * @param int $z
 	 * @return RentSection|NULL
 	 */
-	public function getRent($world, $x, $y, $z) {
+	public function getRent($world, $x, $y, $z): ?RentSection {
 		if ($world instanceof World)
 			$world = $world->getFolderName();
 		return $this->rentLoader->getRent($world, $x, $y, $z);
@@ -175,13 +175,11 @@ class RentProvider {
 	}
 
 	/**
-	 * Save settings (bool is async)
-	 *
-	 * @param string $bool
+	 * Save settings
 	 */
-	public function save($bool = false) {
+	public function save() {
 		if ($this->rentLoader instanceof RentLoader)
-			$this->rentLoader->save($bool);
+			$this->rentLoader->save();
 	}
 }
 

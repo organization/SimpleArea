@@ -156,24 +156,16 @@ class EventListener implements Listener {
 		return $this->plugin->get($var);
 	}
 
-	public function tip(CommandSender $player, $text = "", $mark = null) {
+	public function tip(Player $player, $text = "", $mark = null) {
 		$this->plugin->tip($player, $text, $mark);
 	}
 
 	public function onCommand(CommandSender $player, Command $command, string $label, Array $args): bool {
 		if (!$player instanceof Player) {
 			switch (strtolower($command)) {
-				case $this->get("commands-area"):
-					if (!isset($args[0]))
-						break;
-					if (isset($args[0]) and $args[0] == "?")
-						break;
-				case $this->get("commands-rent"):
-					if (!isset($args[0]))
-						break;
-					if (isset($args[0]) and $args[0] == "?")
-						break;
 				case $this->get("commands-whiteworld"):
+				case $this->get("commands-rent"):
+				case $this->get("commands-area"):
 					if (!isset($args[0]))
 						break;
 					if (isset($args[0]) and $args[0] == "?")
@@ -255,12 +247,12 @@ class EventListener implements Listener {
 							$this->message($player, $this->get("do-you-want-buy-this-area"));
 							$this->message($player, $this->get("if-you-want-to-buy-please-command"));
 							$this->queue["areaBuy"][strtolower($player->getName())] = [
-									"time" => $this->makeTimestamp()
+									"time" => time()
 							];
 							return true;
 						}
 						$before = $this->queue["areaBuy"][strtolower($player->getName())]["time"];
-						$after = $this->makeTimestamp();
+						$after = time();
 						$timeout = intval($after - $before);
 
 						if ($timeout <= 10) {
@@ -283,12 +275,12 @@ class EventListener implements Listener {
 							$this->message($player, $this->get("do-you-want-sell-this-area"));
 							$this->message($player, $this->get("if-you-want-to-sell-please-command"));
 							$this->queue["areaSell"][strtolower($player->getName())] = [
-									"time" => $this->makeTimestamp()
+									"time" => time()
 							];
 							return true;
 						}
 						$before = $this->queue["areaSell"][strtolower($player->getName())]["time"];
-						$after = $this->makeTimestamp();
+						$after = time();
 						$timeout = intval($after - $before);
 
 						if ($timeout <= 10) {
@@ -385,10 +377,10 @@ class EventListener implements Listener {
 						if (!isset($this->queue["areaAbandon"][strtolower($player->getName())])) {
 							$this->message($player, $this->get("do-you-want-area-abandon"));
 							$this->message($player, $this->get("if-you-want-to-abandon-do-again"));
-							$this->queue["areaAbandon"][strtolower($player->getName())]["time"] = $this->makeTimestamp();
+							$this->queue["areaAbandon"][strtolower($player->getName())]["time"] = time();
 						} else {
 							$before = $this->queue["areaAbandon"][strtolower($player->getName())]["time"];
-							$after = $this->makeTimestamp();
+							$after = time();
 							$timeout = intval($after - $before);
 
 							if ($timeout <= 10) {
@@ -526,10 +518,10 @@ class EventListener implements Listener {
 						if (!isset($this->queue["areaDelete"][strtolower($player->getName())])) {
 							$this->message($player, $this->get("do-you-want-area-delete"));
 							$this->message($player, $this->get("if-you-want-to-delete-do-again"));
-							$this->queue["areaDelete"][strtolower($player->getName())]["time"] = $this->makeTimestamp();
+							$this->queue["areaDelete"][strtolower($player->getName())]["time"] = time();
 						} else {
 							$before = $this->queue["areaDelete"][strtolower($player->getName())]["time"];
-							$after = $this->makeTimestamp();
+							$after = time();
 							$timeout = intval($after - $before);
 
 							if ($timeout <= 10) {
@@ -1031,42 +1023,29 @@ class EventListener implements Listener {
 		$this->plugin->message($player, $text, $mark);
 	}
 
-	public function makeTimestamp($date = null) {
-		if ($date === null)
-			$date = date("Y-m-d H:i:s");
-		$yy = substr($date, 0, 4);
-		$mm = substr($date, 5, 2);
-		$dd = substr($date, 8, 2);
-		$hh = substr($date, 11, 2);
-		$ii = substr($date, 14, 2);
-		$ss = substr($date, 17, 2);
-		return mktime($hh, $ii, $ss, $mm, $dd, $yy);
-	}
-
 	public function onBlockPlaceEvent(BlockPlaceEvent $event) {
 		$this->onBlockChangeEvent($event);
 	}
 
 
+	/**
+	 * @param BlockPlaceEvent|PlayerInteractEvent|BlockBreakEvent $event
+	 */
 	public function onBlockChangeEvent(Event $event) {
 		if ($event->getPlayer()->isOp())
 			return;
 		$area = $this->areaProvider->getArea($event->getBlock()->getPos()
-				->getWorld(), $event->getBlock()->getPos()->x, $event->getBlock()->getPos()->z, strtolower($event->getPlayer()
-				->getName()));
+				->getWorld(), $event->getBlock()->getPos()->x, $event->getBlock()->getPos()->z, strtolower($event->getPlayer()->getName()));
 		if ($area instanceof AreaSection) {
 			if ($area->isHome())
-				if ($area->isResident($event->getPlayer()
-						->getName()))
+				if ($area->isResident($event->getPlayer()->getName()))
 					return;
-			if ($area->isOwner($event->getPlayer()
-					->getName()))
+			if ($area->isOwner($event->getPlayer()->getName()))
 				return;
-			$rent = $this->rentProvider->getRent($event->getBlock()->getPos()
-					->getWorld(), $event->getBlock()->getPos()->x, $event->getBlock()->getPos()->y, $event->getBlock()->getPos()->z);
+			$rent = $this->rentProvider->getRent($event->getBlock()->
+			getPos()->getWorld(), $event->getBlock()->getPos()->x, $event->getBlock()->getPos()->y, $event->getBlock()->getPos()->z);
 			if ($rent instanceof RentSection)
-				if ($rent->isOwner($event->getPlayer()
-						->getName()))
+				if ($rent->isOwner($event->getPlayer()->getName()))
 					return;
 			if ($area->isProtected()) {
 				switch (true) {
@@ -1104,8 +1083,7 @@ class EventListener implements Listener {
 			return;
 		}
 
-		$whiteWorld = $this->whiteWorldProvider->get($event->getBlock()->getPos()
-				->getWorld());
+		$whiteWorld = $this->whiteWorldProvider->get($event->getBlock()->getPos()->getWorld());
 		if (!$whiteWorld instanceof WhiteWorldData)
 			return;
 
@@ -1183,12 +1161,12 @@ class EventListener implements Listener {
 					$this->message($event->getPlayer(), $this->get("do-you-want-rent-out"));
 					$this->message($event->getPlayer(), $this->get("if-you-want-do-break-again"));
 					$this->queue["rentout"][strtolower($event->getPlayer()->getName())] = [
-							"time" => $this->makeTimestamp()
+							"time" => time()
 					];
 					return;
 				}
 				$before = $this->queue["rentout"][strtolower($event->getPlayer()->getName())]["time"];
-				$after = $this->makeTimestamp();
+				$after = time();
 				$timeout = intval($after - $before);
 
 				if ($timeout <= 10) {
@@ -1233,13 +1211,13 @@ class EventListener implements Listener {
 
 					if (!isset($this->queue["autoPostDelete"][strtolower($event->getPlayer()->getName())])) {
 						$event->setCancelled();
-						$this->queue["autoPostDelete"][strtolower($event->getPlayer()->getName())] = $this->makeTimestamp();
+						$this->queue["autoPostDelete"][strtolower($event->getPlayer()->getName())] = time();
 						$this->message($event->getPlayer(), $this->get("do-you-want-delete-automatic-post"));
 						$this->message($event->getPlayer(), $this->get("if-you-want-to-delete-automatic-post-do-again"));
 						return;
 					}
 					$before = $this->queue["autoPostDelete"][strtolower($event->getPlayer()->getName())];
-					$after = $this->makeTimestamp();
+					$after = time();
 					$timeout = intval($after - $before);
 
 					if ($timeout <= 10) {
@@ -1637,13 +1615,13 @@ if ($text->getLine(0) == $this->get("easy-automatic-post")) {
 					}
 					if (!isset($this->queue['rentBuy'][$lowerpname])) {
 						$this->queue['rentBuy'][$lowerpname] = [
-								"time" => $this->makeTimestamp()
+								"time" => time()
 						];
 						$this->message($player, $this->get('if-you-want-to-buying-this-rent-touch-again'));
 						$this->message($player, $this->get('rent-hour-per-price') . $rent->getPrice());
 					} else {
 						$before = $this->queue['rentBuy'][$lowerpname]['time'];
-						$after = $this->makeTimestamp();
+						$after = time();
 						$timeout = intval($after - $before);
 
 						if ($timeout > 6) {

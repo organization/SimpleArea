@@ -106,9 +106,9 @@ class RentLoader {
 	 * Get All rent data of the world
 	 *
 	 * @param string $world
-	 * @return NULL|Array
+	 * @return NULL|array
 	 */
-	public function getAll($world) {
+	public function getAll($world): ?array {
 		if ($world instanceof World)
 			$world = $world->getFolderName();
 		if (isset ($this->jsons [$world])) {
@@ -122,9 +122,9 @@ class RentLoader {
 	 * Get All rents info of the world
 	 *
 	 * @param string $world
-	 * @return NULL|Array
+	 * @return NULL|array
 	 */
-	public function getRentsInfo($world) {
+	public function getRentsInfo($world): ?array {
 		if ($world instanceof World)
 			$world = $world->getFolderName();
 		if (!isset ($this->jsons [$world]))
@@ -149,9 +149,9 @@ class RentLoader {
 	 * Get rent data of the world using key
 	 *
 	 * @param string $world
-	 * @return NULL|Array
+	 * @return NULL|array
 	 */
-	public function get($world, $key) {
+	public function get($world, $key): ?array {
 		if ($world instanceof World)
 			$world = $world->getFolderName();
 		if (isset ($this->jsons [$world] [$key])) {
@@ -168,7 +168,7 @@ class RentLoader {
 	 * @param array $data
 	 * @return NULL|RentSection
 	 */
-	public function addRentSection($world, array $data) {
+	public function addRentSection($world, array $data): ?RentSection {
 		if ($world instanceof World)
 			$world = $world->getFolderName();
 
@@ -200,7 +200,7 @@ class RentLoader {
 	 * @param int $endZ
 	 * @return NULL|RentSection
 	 */
-	public function checkOverlap($world, $startX, $endX, $startY, $endY, $startZ, $endZ) {
+	public function checkOverlap($world, $startX, $endX, $startY, $endY, $startZ, $endZ): ?RentSection {
 		if ($world instanceof World)
 			$world = $world->getFolderName();
 		foreach ($this->jsons [$world] as $id => $rent)
@@ -222,7 +222,7 @@ class RentLoader {
 	/**
 	 * Get world data
 	 *
-	 * @param string $world
+	 * @param World|string $world
 	 */
 	public function getWorldData($world) {
 		if ($world instanceof World)
@@ -233,16 +233,14 @@ class RentLoader {
 	}
 
 	/**
-	 * Save settings (bool is async)
-	 *
-	 * @param string $bool
+	 * Save settings
 	 */
-	public function save($bool = false) {
+	public function save() {
 		foreach ($this->jsons as $worldName => $json) {
 			$filePath = Server::getInstance()->getDataPath() . "worlds/" . $worldName . "/rents.json";
 			$config = new Config ($filePath, Config::JSON);
 			$config->setAll($json);
-			$config->save($bool);
+			$config->save();
 		}
 	}
 }

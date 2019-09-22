@@ -1,7 +1,6 @@
 <?php
 namespace ifteam\SimpleArea\database\world;
 
-use ifteam\SimpleArea\database\area\AreaLoader;
 use ifteam\SimpleArea\database\area\AreaSection;
 use pocketmine\Server;
 use pocketmine\utils\Config;
@@ -83,7 +82,7 @@ class WhiteWorldLoader {
 
 	/**
 	 *
-	 * @return AreaLoader
+	 * @return WhiteWorldLoader
 	 */
 	public static function getInstance() {
 		return static::$instance;
@@ -122,16 +121,13 @@ class WhiteWorldLoader {
 	}
 
 	/**
-	 * Save settings (bool is async)
-	 *
-	 * @param string $bool
+	 * Save settings
 	 */
-	public function save($bool = false) {
+	public function save() {
 		foreach ($this->jsons as $worldName => $json) {
 			$filePath = Server::getInstance()->getDataPath() . "worlds/" . $worldName . "/options.json";
 			$config = new Config($filePath, Config::JSON);
 			$config->setAll($json);
-			$config->save($bool);
 		}
 	}
 }

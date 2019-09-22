@@ -88,48 +88,48 @@ class WhiteWorldData {
 		return $this->data ["areaTax"];
 	}
 
-	public function isProtected() {
-		return $this->data ["protect"] == true ? true : false;
+	public function isProtected(): bool {
+		return $this->data ["protect"];
 	}
 
-	public function isAllowOption($blockId, $blockDamage = 0) {
+	public function isAllowOption($blockId, $blockDamage = 0): bool {
 		return isset ($this->data ["allowOption"] ["{$blockId}:{$blockDamage}"]) ? true : false;
 	}
 
-	public function isForbidOption($blockId, $blockDamage = 0) {
+	public function isForbidOption($blockId, $blockDamage = 0): bool {
 		return isset ($this->data ["forbidOption"] ["{$blockId}:{$blockDamage}"]) ? true : false;
 	}
 
-	public function isPvpAllow() {
-		return $this->data ["pvpAllow"] == true ? true : false;
+	public function isPvpAllow(): bool {
+		return $this->data ["pvpAllow"];
 	}
 
-	public function isInvenSave() {
-		return $this->data ["invenSave"] == true ? true : false;
+	public function isInvenSave(): bool {
+		return $this->data ["invenSave"];
 	}
 
-	public function isAutoCreateAllow() {
-		return $this->data ["autoCreateAllow"] == true ? true : false;
+	public function isAutoCreateAllow(): bool {
+		return $this->data ["autoCreateAllow"];
 	}
 
-	public function isManualCreateAllow() {
-		return $this->data ["manualCreateAllow"] == true ? true : false;
+	public function isManualCreateAllow(): bool {
+		return $this->data ["manualCreateAllow"];
 	}
 
-	public function isAllowAccessDeny() {
-		return $this->data ["isAllowAccessDeny"] == true ? true : false;
+	public function isAllowAccessDeny(): bool {
+		return $this->data ["isAllowAccessDeny"];
 	}
 
-	public function isAllowAreaSizeUp() {
-		return $this->data ["isAllowAreaSizeUp"] == true ? true : false;
+	public function isAllowAreaSizeUp(): bool {
+		return $this->data ["isAllowAreaSizeUp"];
 	}
 
-	public function isAllowAreaSizeDown() {
-		return $this->data ["isAllowAreaSizeDown"] == true ? true : false;
+	public function isAllowAreaSizeDown(): bool {
+		return $this->data ["isAllowAreaSizeDown"];
 	}
 
-	public function isCountShareArea() {
-		return $this->data ["isCountShareArea"] == true ? true : false;
+	public function isCountShareArea(): bool {
+		return $this->data ["isCountShareArea"];
 	}
 
 	public function setProtect($bool = true) {

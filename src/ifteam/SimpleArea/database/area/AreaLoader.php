@@ -208,12 +208,12 @@ class AreaLoader {
 		return null;
 	}
 
-	public function save($bool = false) {
+	public function save() {
 		foreach ($this->jsons as $WorldName => $json) {
 			$filePath = $this->server->getDataPath() . "worlds/" . $WorldName . "/protects.json";
 			$config = new Config($filePath, Config::JSON);
 			$config->setAll($json);
-			$config->save($bool);
+			$config->save();
 		}
 		$this->playerlist = [];
 	}

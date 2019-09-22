@@ -27,7 +27,7 @@ class WhiteWorldManager {
 
 	/**
 	 *
-	 * @return AreaProvider
+	 * @return WhiteWorldManager
 	 */
 	public static function getInstance() {
 		return static::$instance;
@@ -311,24 +311,6 @@ class WhiteWorldManager {
 			}
 			$whiteWorld->setDefaultAreaSize($x, $z);
 			$this->message($player, $this->get("whiteworld-areasize-has-changed"));
-		} else {
-			$this->message($player, $this->get("whiteworld-not-exist"));
-			return false;
-		}
-		return true;
-	}
-
-	public function setManualCreateMaxSize($world, $size, CommandSender $player) {
-		$whiteWorld = $this->whiteWorldProvider->get($world);
-		if ($whiteWorld instanceof WhiteWorldData) {
-			$x = explode(":", $size)[0];
-			$z = explode(":", $size)[1];
-			if (!is_numeric($x)) {
-				$this->message($player, "수동생성 최대 사이즈는 숫자이어야 합니다.");
-				return false;
-			}
-			$whiteWorld->setManualCreateMaxSize($x, $z);
-			$this->message($player, "성공적으로 수동생성 최대 사이즈를 변경하였습니다.");
 		} else {
 			$this->message($player, $this->get("whiteworld-not-exist"));
 			return false;

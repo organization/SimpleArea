@@ -135,9 +135,9 @@ class SimpleArea extends PluginBase implements Listener {
 		if ($this->areaProvider instanceof AreaProvider)
 			$this->areaProvider->save(true);
 		if ($this->rentProvider instanceof RentProvider)
-			$this->rentProvider->save(true);
+			$this->rentProvider->save();
 		if ($this->whiteWorldProvider instanceof WhiteWorldProvider)
-			$this->whiteWorldProvider->save(true);
+			$this->whiteWorldProvider->save();
 	}
 
 	public function onCommand(CommandSender $player, Command $command, string $label, Array $args): bool {

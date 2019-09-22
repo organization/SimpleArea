@@ -28,9 +28,6 @@ class AreaSection {
 				"startZ",
 				"endZ"
 		];
-		foreach ($basicElements as $element)
-			if (!isset($data[$element])) {
-			}
 
 		$whiteWorld = WhiteWorldProvider::getInstance()->get($world);
 

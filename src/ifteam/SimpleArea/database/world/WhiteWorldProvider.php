@@ -35,13 +35,11 @@ class WhiteWorldProvider {
 	}
 
 	/**
-	 * Save settings (bool is async)
-	 *
-	 * @param string $bool
+	 * Save settings
 	 */
-	public function save($bool = false) {
+	public function save() {
 		if ($this->whiteWorldLoader instanceof WhiteWorldLoader)
-			$this->whiteWorldLoader->save($bool);
+			$this->whiteWorldLoader->save();
 	}
 }
 
