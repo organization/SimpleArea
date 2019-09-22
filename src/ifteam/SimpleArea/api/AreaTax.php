@@ -6,6 +6,7 @@ use ifteam\SimpleArea\database\world\WhiteWorldData;
 use ifteam\SimpleArea\database\world\WhiteWorldProvider;
 use ifteam\SimpleArea\SimpleArea;
 use ifteam\SimpleArea\task\HourTaxCheckTask;
+use onebone\economyapi\EconomyAPI;
 use pocketmine\player\Player;
 use pocketmine\Server;
 
@@ -27,7 +28,7 @@ class AreaTax {
 
 	/**
 	 *
-	 * @var \onebone\economyapi\EconomyAPI
+	 * @var EconomyAPI
 	 */
 	private $economy;
 

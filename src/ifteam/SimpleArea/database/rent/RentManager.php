@@ -4,6 +4,7 @@ namespace ifteam\SimpleArea\database\rent;
 
 use ifteam\SimpleArea\database\user\UserProperties;
 use ifteam\SimpleArea\SimpleArea;
+use onebone\economyapi\EconomyAPI;
 use pocketmine\block\Block;
 use pocketmine\command\CommandSender;
 use pocketmine\math\Vector3;
@@ -20,7 +21,7 @@ class RentManager {
 	private $rentProvider;
 	/**
 	 *
-	 * @var \onebone\economyapi\EconomyAPI
+	 * @var EconomyAPI
 	 */
 	private $economy;
 	/**

@@ -7,6 +7,7 @@ use ifteam\SimpleArea\database\area\AreaSection;
 use ifteam\SimpleArea\database\user\UserProperties;
 use ifteam\SimpleArea\database\world\WhiteWorldProvider;
 use ifteam\SimpleArea\SimpleArea;
+use onebone\economyapi\EconomyAPI;
 use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 use pocketmine\Server;
@@ -39,7 +40,7 @@ class MineFarmManager {
 
 	/**
 	 *
-	 * @var \onebone\economyapi\EconomyAPI
+	 * @var EconomyAPI
 	 */
 	private $economy;
 

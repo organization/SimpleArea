@@ -5,6 +5,7 @@ namespace ifteam\SimpleArea\database\area;
 use ifteam\SimpleArea\database\user\UserProperties;
 use ifteam\SimpleArea\database\world\WhiteWorldProvider;
 use ifteam\SimpleArea\SimpleArea;
+use onebone\economyapi\EconomyAPI;
 use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 use pocketmine\block\BlockLegacyIds;
@@ -30,7 +31,7 @@ class AreaManager {
 	private $whiteWorldProvider;
 	/**
 	 *
-	 * @var \onebone\economyapi\EconomyAPI
+	 * @var EconomyAPI
 	 */
 	private $economy;
 	/**

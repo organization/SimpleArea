@@ -4,6 +4,7 @@ namespace ifteam\SimpleArea\api;
 use ifteam\SimpleArea\database\rent\RentProvider;
 use ifteam\SimpleArea\SimpleArea;
 use ifteam\SimpleArea\task\HourRentPaymentTask;
+use onebone\economyapi\EconomyAPI;
 use pocketmine\player\Player;
 use pocketmine\Server;
 
@@ -13,7 +14,7 @@ class RentPayment {
 
 	/**
 	 *
-	 * @var \onebone\economyapi\EconomyAPI
+	 * @var EconomyAPI
 	 */
 	private $economy;
 
