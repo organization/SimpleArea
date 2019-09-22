@@ -6,6 +6,7 @@ use onebone\economyapi\EconomyAPI;
 use pocketmine\Server;
 
 class API_EconomyAPI {
+	/** @var EconomyAPI|null */
 	private $plugin;
 
 	public function __construct() {
@@ -17,7 +18,7 @@ class API_EconomyAPI {
 	 *
 	 * @return EconomyAPI
 	 */
-	public function getPlugin() {
+	public function getPlugin():EconomyAPI {
 		return $this->plugin;
 	}
 }

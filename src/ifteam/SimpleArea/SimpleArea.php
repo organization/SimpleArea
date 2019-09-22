@@ -82,7 +82,7 @@ class SimpleArea extends PluginBase implements Listener {
 		$this->registerCommand($this->get("commands-minefarm"), "simplearea.minefarm", $this->get("commands-minefarm-desc"));
 		$this->registerCommand($this->get("commands-areatax"), "simplearea.areatax", $this->get("commands-areatax-desc"));
 
-		if (file_exists($this->getServer()->getDataPath() . "worlds/island/world.dat")) {
+		if (file_exists($this->getServer()->getDataPath() . "worlds/island/level.dat")) {
 			if (!$this->getServer()->getWorldManager()->getWorldByName("island") instanceof World) {
 				$this->getServer()->getWorldManager()->loadWorld("island");
 				WhiteWorldLoader::getInstance()->init("island");
