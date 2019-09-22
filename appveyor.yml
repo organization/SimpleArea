@@ -1,0 +1,53 @@
+# WRITTEN BY https://github.com/Blugin , https://github.com/PresentKim
+
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+# version format
+version: "#{build}"
+
+# branches to build
+branches:
+  # whitelist
+  only:
+    - master
+
+# Maximum number of concurrent jobs for the project
+max_jobs: 1
+
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Build worker image (VM template)
+image: Ubuntu1804
+
+# set clone depth
+clone_depth: 5
+
+# build cache to preserve files/folders between builds
+cache:
+  - '$HOME/cache/' # my cache
+  
+# scripts that are called at very beginning, before repo cloning
+init:
+  - mkdir $HOME/cache/
+
+# scripts that run after cloning repository
+install:
+  - wget -nc -P $HOME/cache/ https://jenkins.pmmp.io/job/PHP-7.3-Linux-x86_64/lastSuccessfulBuild/artifact/PHP_Linux-x86_64.tar.gz
+  - tar -C ../ -xvf $HOME/cache/PHP_Linux-x86_64.tar.gz
+  - wget --cache=off --cookies=off https://gist.githubusercontent.com/PresentKim/b401f5d88d2ec7d9655afa8468658a9f/raw/build.php
+
+# to run your custom scripts instead of automatic MSBuild
+build_script:
+  - ../bin/php7/bin/php ./build.php --buildurl=${APPVEYOR_API_URL} --buildnum=${APPVEYOR_BUILD_NUMBER}
+
+
+#---------------------------------#
+#      artifacts configuration    #
+#---------------------------------#
+
+artifacts:
+  - path: "releases/*.phar"
