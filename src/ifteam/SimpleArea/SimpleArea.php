@@ -111,7 +111,7 @@ class SimpleArea extends PluginBase implements Listener {
 
 	public function registerCommand($name, $permission, $description = "", $usage = "") {
 		$commandMap = $this->getServer()->getCommandMap();
-		$command = new PluginCommand ($name, $this);
+		$command = new PluginCommand ($name, $this, $this);
 		$command->setDescription($description);
 		$command->setPermission($permission);
 		$command->setUsage($usage);
